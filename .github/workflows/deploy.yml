@@ -1,0 +1,39 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, tiranidos]
+    concurrency:
+      group: bench-restart-tiranidos
+      cancel-in-progress: false
+
+    steps:
+      - name: Pull changes
+        run: |
+          cd ~/frappe-bench/apps/finhub
+          git pull origin main
+
+      - name: Migrate if doctypes changed
+        run: |
+          cd ~/frappe-bench/apps/finhub
+          if git diff HEAD~1 --name-only | grep -q "finhub/doctype/"; then
+            cd ~/frappe-bench
+            bench --site erp.tiranidos.com migrate
+          fi
+
+      - name: Restart and clear cache
+        run: |
+          cd ~/frappe-bench
+          for i in 1 2 3; do
+            bench restart && break || sleep 10
+          done
+          bench --site erp.tiranidos.com clear-cache

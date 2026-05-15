@@ -1,0 +1,6 @@
+[
+  {"doctype": "Role", "name": "Finhub-Caja-Ver", "role_name": "Finhub-Caja-Ver", "desk_access": 0},
+  {"doctype": "Role", "name": "Finhub-Caja-Administrar", "role_name": "Finhub-Caja-Administrar", "desk_access": 0},
+  {"doctype": "Role", "name": "Finhub-Finanzas-Ver", "role_name": "Finhub-Finanzas-Ver", "desk_access": 0},
+  {"doctype": "Role", "name": "Finhub-Finanzas-Administrar", "role_name": "Finhub-Finanzas-Administrar", "desk_access": 0}
+]
