@@ -17,6 +17,7 @@
   "descripcion",
   "recordatorio_activo",
   "proveedor",
+  "ruc",
   "caja_chica",
   "orden_compra",
   "adjuntos",
@@ -94,6 +95,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "ruc",
+   "fieldtype": "Data",
+   "label": "RUC",
+   "length": 11
+  },
+  {
    "fieldname": "caja_chica",
    "fieldtype": "Link",
    "label": "Caja Chica",
@@ -120,7 +127,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-14 21:00:00.000000",
+ "modified": "2026-05-15 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "FinHub",
  "name": "Finanzas Corporativas",
