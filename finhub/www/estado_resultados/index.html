@@ -1,0 +1,226 @@
+{% extends "templates/web.html" %}
+{% block navbar %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+{% if no_access %}
+<style>
+    .er-na-screen {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #f5f6f8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        z-index: 1000;
+    }
+    .er-na-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 28px 32px; max-width: 480px; width: calc(100% - 40px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .er-na-brand {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: #111827;
+        padding-bottom: 12px; border-bottom: 1px solid #f1f1f3;
+    }
+    .er-na-dot { width: 8px; height: 8px; border-radius: 50%; background: #b91c1c; }
+    .er-na-body { font-size: 14px; color: #374151; line-height: 1.55; margin-top: 16px; }
+    .er-na-body code {
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 1px 6px; border-radius: 4px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 13px; color: #111827;
+    }
+    .er-na-roles { margin: 10px 0 0 18px; padding: 0; }
+    .er-na-roles li { margin: 4px 0; }
+    .er-na-hint { margin-top: 14px; font-size: 13px; color: #6b7280; }
+</style>
+<div class="er-na-screen">
+    <div class="er-na-card">
+        <div class="er-na-brand">
+            <span class="er-na-dot"></span>
+            <span>FinHub · No permitido</span>
+        </div>
+        <div class="er-na-body">
+            No tienes permiso para acceder a <b>Estado de Resultados</b>.
+            Se requiere alguno de los siguientes roles:
+            <ul class="er-na-roles">
+                {% for r in required_roles %}
+                <li><code>{{ r }}</code></li>
+                {% endfor %}
+            </ul>
+            <p class="er-na-hint">
+                Contacta a un administrador para que te asigne el rol correspondiente.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/lucide-static@latest/font/lucide.css" rel="stylesheet">
+
+<div class="er-container">
+    <!-- HEADER -->
+    <header class="er-header">
+        <div class="er-header-left">
+            <div class="er-logo">
+                <i data-lucide="trending-up"></i>
+            </div>
+            <div class="er-title-block">
+                <h1>Estado de Resultados</h1>
+                <p class="er-subtitle">FinHub · Estado de Resultados</p>
+            </div>
+        </div>
+        <div class="er-header-right">
+            <button class="er-range-btn" id="erRangeBtn" type="button">
+                <i data-lucide="calendar"></i>
+                <span id="erRangeLabel">Cargando...</span>
+                <i data-lucide="chevron-down" class="er-chev"></i>
+            </button>
+            <button class="er-print-btn" id="erPrintBtn" type="button" title="Imprimir">
+                <i data-lucide="printer"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- DATE RANGE POPOVER -->
+    <div class="er-popover d-none" id="erPopover">
+        <div class="er-popover-inner">
+            <div class="er-presets">
+                <button data-preset="este-mes" class="active">Este mes</button>
+                <button data-preset="mes-pasado">Mes pasado</button>
+                <button data-preset="este-trimestre">Este trimestre</button>
+                <button data-preset="este-año">Este año</button>
+                <button data-preset="custom">Personalizado</button>
+            </div>
+            <div class="er-date-inputs">
+                <div>
+                    <label>Desde</label>
+                    <input type="date" id="erDateFrom">
+                </div>
+                <div>
+                    <label>Hasta</label>
+                    <input type="date" id="erDateTo">
+                </div>
+            </div>
+            <div class="er-popover-actions">
+                <button class="btn-cancel" id="erCancelRange">Cancelar</button>
+                <button class="btn-apply" id="erApplyRange">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="erLoader" class="er-loader">
+        <div class="er-spinner"></div>
+        <p>Calculando Estado de Resultados...</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="er-main d-none" id="erMain">
+        <!-- KPI CARDS -->
+        <section class="er-kpi-grid">
+            <div class="er-kpi-card kpi-primary" data-kpi="ingresos_netos">
+                <div class="er-kpi-label">
+                    <i data-lucide="banknote"></i>
+                    Ingresos Netos
+                </div>
+                <div class="er-kpi-value" id="kpiIngresosNetos">S/. 0.00</div>
+                <div class="er-kpi-trend" id="kpiTrend"></div>
+                <div class="er-kpi-hint">Click para detalle</div>
+            </div>
+            <div class="er-kpi-card" data-kpi="utilidad_bruta">
+                <div class="er-kpi-label">
+                    <i data-lucide="scissors"></i>
+                    Utilidad Bruta
+                </div>
+                <div class="er-kpi-value" id="kpiUtilidadBruta">S/. 0.00</div>
+                <div class="er-kpi-sub" id="kpiUtilidadBrutaPct">0% margen bruto</div>
+                <div class="er-kpi-hint">Click para detalle</div>
+            </div>
+            <div class="er-kpi-card" data-kpi="utilidad_operacion">
+                <div class="er-kpi-label">
+                    <i data-lucide="activity"></i>
+                    Utilidad Operacion
+                </div>
+                <div class="er-kpi-value" id="kpiUtilidadOp">S/. 0.00</div>
+                <div class="er-kpi-sub" id="kpiUtilidadOpPct">0% margen operativo</div>
+                <div class="er-kpi-hint">Click para detalle</div>
+            </div>
+            <div class="er-kpi-card kpi-accent" data-kpi="utilidad_neta">
+                <div class="er-kpi-label">
+                    <i data-lucide="wallet"></i>
+                    Utilidad Neta
+                </div>
+                <div class="er-kpi-value" id="kpiUtilidadNeta">S/. 0.00</div>
+                <div class="er-kpi-sub" id="kpiUtilidadNetaPct">0% margen neto</div>
+                <div class="er-kpi-hint">Click para detalle</div>
+            </div>
+        </section>
+
+        <!-- TABLA P&L -->
+        <section class="er-pl-section">
+            <div class="er-pl-header">
+                <h2>Desglose Completo</h2>
+                <span class="er-pl-period" id="erPlPeriod"></span>
+            </div>
+            <div class="er-pl-table-wrap">
+                <table class="er-pl-table">
+                    <thead>
+                        <tr>
+                            <th class="er-th-concept">Concepto</th>
+                            <th class="er-th-amount">Monto</th>
+                            <th class="er-th-pct">% Ingresos Netos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="erPlBody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- GASTOS DETALLE -->
+        <section class="er-pl-section">
+            <div class="er-pl-header">
+                <h2>Detalle de Gastos de Operacion</h2>
+            </div>
+            <div class="er-gastos-grid" id="erGastosGrid">
+                <!-- Rendered by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- ERROR -->
+    <div id="erError" class="er-error d-none">
+        <i data-lucide="alert-circle"></i>
+        <p id="erErrorMsg"></p>
+    </div>
+</div>
+
+<!-- DRAWER DETALLE KPI -->
+<div class="er-drawer-overlay" id="erDrawerOverlay"></div>
+<aside class="er-drawer" id="erDrawer">
+    <header class="er-drawer-header">
+        <div class="er-drawer-title">
+            <i data-lucide="layers"></i>
+            <h2 id="erDrawerTitle">Detalle</h2>
+        </div>
+        <button class="er-drawer-close" id="erDrawerClose" type="button" title="Cerrar">
+            <i data-lucide="x"></i>
+        </button>
+    </header>
+    <div class="er-drawer-body" id="erDrawerBody">
+        <!-- Rendered by JS -->
+    </div>
+</aside>
+
+{% endif %}
+{% endblock %}
+
+{% block script %}
+{% if not no_access %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="/estado_resultados/index.js"></script>
+{% endif %}
+{% endblock %}

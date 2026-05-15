@@ -27,6 +27,12 @@ launcher_tiles = [
 		"icon": "calculator",
 		"role": "Finhub-Finanzas-Ver",
 	},
+	{
+		"label": "Estado de Resultados",
+		"url": "/estado_resultados",
+		"icon": "trending-up",
+		"role": "Finhub-Finanzas-Ver",
+	},
 ]
 
 fixtures = [
