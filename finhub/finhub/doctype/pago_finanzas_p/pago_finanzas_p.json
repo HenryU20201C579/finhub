@@ -1,0 +1,131 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "modo_pago",
+  "monto",
+  "fecha_hora_pago",
+  "adjuntos_pagos",
+  "notas",
+  "categoria_pago",
+  "modo_pago_compra",
+  "cuenta_de_banco",
+  "entrada_pago"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "label": "serie",
+   "options": "PAG-FP-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "modo_pago",
+   "fieldtype": "Link",
+   "label": "Modo Pago",
+   "options": "Metodo Pago",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto"
+  },
+  {
+   "fieldname": "fecha_hora_pago",
+   "fieldtype": "Datetime",
+   "label": "Fecha Hora Pago"
+  },
+  {
+   "fieldname": "adjuntos_pagos",
+   "fieldtype": "Table",
+   "label": "Adjuntos Pagos",
+   "options": "Adjunto Pago Asociado"
+  },
+  {
+   "fieldname": "notas",
+   "fieldtype": "Small Text",
+   "label": "Notas"
+  },
+  {
+   "fieldname": "categoria_pago",
+   "fieldtype": "Link",
+   "label": "Categoria Pago",
+   "options": "Categoria Pago"
+  },
+  {
+   "fieldname": "modo_pago_compra",
+   "fieldtype": "Link",
+   "label": "Modo Pago Compra",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "cuenta_de_banco",
+   "fieldtype": "Link",
+   "label": "Cuenta de Banco",
+   "options": "Bank Account"
+  },
+  {
+   "fieldname": "entrada_pago",
+   "fieldtype": "Data",
+   "label": "Entrada Pago"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FinHub",
+ "name": "Pago Finanzas P",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Caja-Administrar",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Finanzas-Administrar",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:serie",
+ "naming_rule": "By \"Naming Series\" field"
+}

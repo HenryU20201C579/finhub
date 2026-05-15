@@ -1,0 +1,746 @@
+{% extends "templates/web.html" %}
+
+{% block style %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="/caja_chica/index.css">
+<link rel="stylesheet" href="/caja_chica/mobile.css">
+{% endblock %}
+
+{% block content %}
+{% if no_access %}
+<style>
+    .cc-na-screen {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #f5f6f8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        z-index: 1000;
+    }
+    .cc-na-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 28px 32px; max-width: 480px; width: calc(100% - 40px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .cc-na-brand {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: #111827;
+        padding-bottom: 12px; border-bottom: 1px solid #f1f1f3;
+    }
+    .cc-na-dot { width: 8px; height: 8px; border-radius: 50%; background: #b91c1c; }
+    .cc-na-body { font-size: 14px; color: #374151; line-height: 1.55; margin-top: 16px; }
+    .cc-na-body code {
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 1px 6px; border-radius: 4px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 13px; color: #111827;
+    }
+    .cc-na-roles { margin: 10px 0 0 18px; padding: 0; }
+    .cc-na-roles li { margin: 4px 0; }
+    .cc-na-hint { margin-top: 14px; font-size: 13px; color: #6b7280; }
+</style>
+<div class="cc-na-screen">
+    <div class="cc-na-card">
+        <div class="cc-na-brand">
+            <span class="cc-na-dot"></span>
+            <span>Tiranidos ERP · No permitido</span>
+        </div>
+        <div class="cc-na-body">
+            No tienes permiso para acceder a <b>Caja Chica</b>.
+            Se requiere alguno de los siguientes roles:
+            <ul class="cc-na-roles">
+                {% for r in required_roles %}
+                <li><code>{{ r }}</code></li>
+                {% endfor %}
+            </ul>
+            <p class="cc-na-hint">
+                Contacta a un administrador para que te asigne el rol correspondiente.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<script>window.CC_CAN_EDIT = {{ 'true' if can_edit else 'false' }};</script>
+<div class="split-container" id="split-container">
+    <div class="detail-overlay" id="detailOverlay" onclick="closeDetailPane()"></div>
+
+    <!-- LEFT PANE: LIST -->
+    <div class="split-pane left-pane" id="left-pane">
+        <div class="page-header-modern">
+            <h1 class="page-title-modern">Caja Chica</h1>
+            <p class="page-subtitle-modern">Gestión centralizada de fondos y gastos menores</p>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="stats-grid">
+            <div class="stat-card-modern">
+                <div class="stat-icon bg-primary-soft">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Cajas Abiertas</span>
+                    <span class="stat-value" id="openBoxesCount">0</span>
+                </div>
+            </div>
+            <div class="stat-card-modern">
+                <div class="stat-icon bg-warning-soft">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Gastado Hoy</span>
+                    <span class="stat-value" id="totalSpentToday">S/ 0.00</span>
+                </div>
+            </div>
+            <div class="stat-card-modern">
+                <div class="stat-icon bg-info-soft">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Total en Periodo</span>
+                    <span class="stat-value" id="totalSpentMonth">S/ 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Category Stats -->
+        <div id="globalCategoryStatsContainer" class="mb-4"></div>
+
+        <!-- Filter Section -->
+        <div class="filter-section-modern">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="search-input-modern"
+                    placeholder="Buscar por responsable, serie o descripción...">
+            </div>
+            <button class="btn-add-modern" onclick="openNewBox()">
+                <i class="fas fa-plus"></i> Nueva Caja
+            </button>
+        </div>
+
+        <div class="filters-inline">
+            <div class="filter-pill">
+                <i class="far fa-calendar-alt"></i>
+                <input type="date" id="filterStartDate">
+                <span>-</span>
+                <input type="date" id="filterEndDate">
+            </div>
+            <div class="filter-pill">
+                <i class="fas fa-filter"></i>
+                <select id="filterStatus">
+                    <option value="">Todos los Estados</option>
+                    <option value="Abierta" selected>Solo Abiertas</option>
+                    <option value="Cerrada">Cerradas</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- List -->
+        <div id="cajaList" class="expense-list">
+            <!-- Populated by JS -->
+            <div class="text-center p-5 text-muted">
+                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                <p>Cargando cajas...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANE: DETAIL -->
+    <div class="right-pane" id="right-pane">
+        <button class="btn-close-pane" onclick="closeDetailPane()">
+            ❌
+        </button>
+
+        <!-- Empty State -->
+        <div id="detail-empty" class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+            <div class="p-4 bg-white rounded-circle shadow-sm mb-4" style="border: 1px solid #f1f5f9;">
+                <i class="fas fa-cash-register text-primary fa-2x"></i>
+            </div>
+            <h5 class="fw-bold text-dark">Detalle de Caja</h5>
+            <p class="small text-center px-5">Selecciona una caja de la lista para ver sus movimientos, responsables y
+                adjuntos.</p>
+        </div>
+
+        <!-- Detail Content -->
+        <div id="detail-content" class="detail-content d-none">
+            <div class="detail-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2" style="overflow: hidden;">
+                        <button type="button" class="btn-mobile-back" onclick="closeDetailPane()">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h2 class="detail-title text-truncate" id="paneTitle">Nueva Caja Chica</h2>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm border-0 d-none flex-shrink-0"
+                        id="btnDelete" onclick="deleteCurrentBox()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detail-body">
+                <div class="cch-tabs-nav" id="cchTabsNav">
+                    <button type="button" class="cch-tab-btn active" data-tab="caja" onclick="cchSwitchTab('caja')">
+                        <i class="fas fa-wallet me-1"></i> Caja
+                    </button>
+                    <button type="button" class="cch-tab-btn" data-tab="gd" onclick="cchSwitchTab('gd')">
+                        <i class="fas fa-truck me-1"></i> Gastos Distribución
+                    </button>
+                </div>
+
+                <div class="cch-tabpane active" id="cchTabCaja">
+                <form id="cajaForm">
+                    <input type="hidden" name="name" id="cajaId">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Fecha Apertura</label>
+                            <input type="date" name="fecha" id="inputFecha" class="form-control rounded-4 shadow-sm"
+                                required style="border: 1.5px solid #e2e8f0;">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Monto Inicial</label>
+                            <div class="input-group-modern">
+                                <span class="input-group-text">S/</span>
+                                <input type="number" step="0.01" name="monto" id="inputMonto" class="form-control"
+                                    required placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3" id="saldoAnteriorGroup" style="display:none;">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Arrastrar saldo de caja anterior</label>
+                            <select name="caja_origen" id="inputCajaOrigen" class="form-select rounded-4 shadow-sm"
+                                style="border: 1.5px solid #e2e8f0;">
+                                <option value="">— Sin arrastre —</option>
+                            </select>
+                            <div id="saldoOrigenInfo" class="mt-1 small text-success fw-bold" style="display:none;"></div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Responsable</label>
+                            <select name="responsable" id="inputResponsable" class="form-select rounded-4 shadow-sm"
+                                required style="border: 1.5px solid #e2e8f0;"></select>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Descripción / Nota</label>
+                            <textarea name="descripcion" id="inputDescripcion" class="form-control rounded-4 shadow-sm"
+                                rows="3" placeholder="Ej: Gastos de oficina Marzo..."
+                                style="border: 1.5px solid #e2e8f0;"></textarea>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Estado de Caja</label>
+                            <select name="estado" id="inputEstado" class="form-select rounded-4 shadow-sm"
+                                style="border: 1.5px solid #e2e8f0;">
+                                <option value="Abierta">Abierta</option>
+                                <option value="Cerrada">Cerrada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Documentos de Apertura</h6>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-light border" onclick="handlePasteButton()">
+                                    <i class="fas fa-paste me-1"></i> Pegar No
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light border"
+                                    onclick="triggerManualUpload()">
+                                    <i class="fas fa-upload me-1"></i> Subir
+                                </button>
+                            </div>
+                        </div>
+                        <div id="attachmentsList" class="d-flex flex-wrap gap-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </form>
+                </div>
+
+                <div class="cch-tabpane" id="cchTabGD" style="display:none;">
+                    <div id="cchGDEmpty" class="text-center text-muted py-5">
+                        <i class="fas fa-truck fa-2x mb-2 opacity-50"></i>
+                        <p class="mb-0">Guarde la caja para gestionar sus gastos de distribución.</p>
+                    </div>
+                    <div id="cchGDContent" style="display:none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-0">Gastos de Distribución de esta caja</h6>
+                                <small class="text-muted" id="cchGDSaldoInfo">Saldo disponible: —</small>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" id="cchGDBtnNuevo" onclick="cchGDOpenForm()">
+                                <i class="fas fa-plus me-1"></i> Nuevo Gasto
+                            </button>
+                        </div>
+                        <div id="cchGDListWrap">
+                            <div id="cchGDList" class="d-flex flex-column gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-footer">
+                <button type="submit" form="cajaForm" class="btn btn-primary w-100 py-2 fw-bold" id="btnSave">
+                    <i class="fas fa-save me-2"></i> Guardar Caja Chica
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Payments History -->
+<div class="modal-backdrop" id="paymentsHistoryModal">
+    <div class="modal-modern">
+        <div class="modal-header-modern">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary-soft p-2 rounded-circle"
+                    style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-list-ul text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Historial de Movimientos</h5>
+                    <p class="text-muted small mb-0" id="phCajaTitle">Caja: ...</p>
+                </div>
+            </div>
+            <button class="btn-close-modal" onclick="closePaymentsHistory()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <div class="row g-3 mb-4">
+                <div class="col-4">
+                    <div class="bg-light p-3 rounded-4 border text-center">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 10px;">Fondo
+                            Inicial</small>
+                        <span class="fs-5 fw-bold" id="phTotal">S/ 0.00</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-danger-light p-3 rounded-4 border border-danger-light text-center text-danger">
+                        <small class="fw-bold text-uppercase d-block mb-1" style="font-size: 10px;">Total
+                            Pagado</small>
+                        <span class="fs-5 fw-bold" id="phSpent">S/ 0.00</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-success-light p-3 rounded-4 border border-success-light text-center text-success">
+                        <small class="fw-bold text-uppercase d-block mb-1" style="font-size: 10px;">Saldo
+                            Disponible</small>
+                        <span class="fs-5 fw-bold" id="phBalance">S/ 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas por Categoría -->
+            <div id="categoryStatsContainer" class="mb-4"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Lista de Pagos</h6>
+                <button class="btn btn-primary btn-sm rounded-3 shadow-sm" id="btnAddExpense"
+                    onclick="openPaymentModal()">
+                    <i class="fas fa-plus me-1"></i> Registrar Pago
+                </button>
+            </div>
+
+            <div class="table-responsive rounded-4 border bg-white">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="text-uppercase small fw-bold text-muted" style="font-size: 10px;">
+                            <th class="ps-4">Fecha</th>
+                            <th>Método</th>
+                            <th class="text-end">Monto</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsHistoryList" style="font-size: 14px;">
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Classify Attachment -->
+<div class="modal-backdrop" id="attachmentCategoryModal">
+    <div class="modal-modern" style="max-width: 400px;">
+        <div class="modal-header-modern bg-white">
+            <h6 class="fw-bold mb-0">Clasificar Adjunto</h6>
+            <button class="btn-close-modal" onclick="closeAttachmentModal()">❌</button>
+        </div>
+        <div class="modal-body-modern text-center py-5">
+            <div class="mb-4 position-relative d-inline-block">
+                <img id="attachmentPreviewImg" src=""
+                    style="width: 120px; height: 120px; object-fit: cover; border-radius: 20px; border: 4px solid white; box-shadow: var(--shadow-md);">
+                <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow"
+                    style="width: 32px; height: 32px; border: 2px solid white;">
+                    <i class="fas fa-tag" style="font-size: 12px;"></i>
+                </div>
+            </div>
+            <div class="text-start px-4">
+                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Seleccione una Categoría</label>
+                <div class="input-group-modern">
+                    <select id="attachmentCategorySelect" class="form-select"></select>
+                    <button type="button" class="btn-quick-add"
+                        onclick="openQuickCreateModal('Categoria Adjuntos Finanzas', 'attachmentCategorySelect', 'categoria_adjuntos')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-modern border-0 pt-0 pb-4 px-4 d-flex gap-2">
+            <button class="btn btn-light border flex-grow-1" onclick="closeAttachmentModal()">Cancelar</button>
+            <button class="btn btn-primary flex-grow-1 fw-bold" onclick="confirmAttachment()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Register Payment -->
+<div class="modal-backdrop" id="paymentModal">
+    <div class="modal-modern" style="max-width: 500px;">
+        <div class="modal-header-modern">
+            <h5 class="fw-bold mb-0">Registrar Nuevo Pago</h5>
+            <button class="btn-close-modal" onclick="closePaymentModal()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <form id="paymentForm">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Fecha de Pago</label>
+                        <input type="date" name="fecha" id="pInputFecha" class="form-control rounded-4" required
+                            style="border: 1.5px solid #e2e8f0; padding: 0.6rem 1rem;">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Monto Pagado</label>
+                        <div class="input-group-modern">
+                            <span class="input-group-text">S/</span>
+                            <input type="number" step="0.01" name="monto" id="pInputMonto" class="form-control" required
+                                placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Método de Pago</label>
+                        <div class="input-group-modern">
+                            <select name="modo_pago" id="pInputModo" class="form-select" required></select>
+                            <button type="button" class="btn-quick-add"
+                                onclick="openQuickCreateModal('Metodo Pago', 'pInputModo', 'nombre')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Categoría de Gasto /
+                            Pago</label>
+                        <div class="input-group-modern">
+                            <select name="categoria_pago" id="pInputCategoria" class="form-select" required></select>
+                            <button type="button" class="btn-quick-add"
+                                onclick="openQuickCreateModal('Categoria Pago', 'pInputCategoria', 'nombre')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Notas / Concepto</label>
+                        <textarea name="notas" id="pInputNotas" class="form-control rounded-4" rows="2"
+                            placeholder="Ej: Pago de luz oficina, compra de útiles..."
+                            style="border: 1.5px solid #e2e8f0;"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Comprobantes / Vouchers</h6>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-action-prominent" onclick="handlePaymentPaste()"
+                                title="Pegar del portapapeles">
+                                <i class="fas fa-paste"></i> Pegar
+                            </button>
+                            <button type="button" class="btn btn-action-prominent"
+                                onclick="triggerPaymentManualUpload()" title="Subir archivo">
+                                <i class="fas fa-upload"></i> Subir
+                            </button>
+                        </div>
+                    </div>
+                    <div id="paymentAttachmentsList" class="d-flex flex-wrap gap-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-modern p-4 pt-0 border-0 d-flex gap-3">
+            <button class="btn btn-light border flex-grow-1" onclick="closePaymentModal()">Cancelar</button>
+            <button type="submit" form="paymentForm" class="btn btn-primary flex-grow-1 fw-bold" id="btnSavePayment">
+                <i class="fas fa-check me-2"></i> Confirmar Pago
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Payment Detail View -->
+<div class="modal-backdrop" id="paymentDetailModal">
+    <div class="modal-modern" style="max-width: 500px;">
+        <div class="modal-header-modern">
+            <h5 class="fw-bold mb-0">Detalle del Pago</h5>
+            <button class="btn-close-modal" onclick="closePaymentDetailModal()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <div class="payment-detail-card mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold d-block">Monto Pagado</span>
+                        <h2 class="fw-bold text-primary mb-0" id="pdMonto">S/ 0.00</h2>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill" id="pdModo">Modo</span>
+                    </div>
+                </div>
+                <div class="row g-3 py-3 border-top">
+                    <div class="col-6">
+                        <span class="text-muted small d-block">Fecha</span>
+                        <span class="fw-medium" id="pdFecha">-</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted small d-block">Categoría</span>
+                        <span class="fw-medium" id="pdCategoria">-</span>
+                    </div>
+                    <div class="col-12 mt-3" id="pdNotasContainer">
+                        <span class="text-muted small d-block">Notas / Concepto</span>
+                        <p class="mb-0 bg-light p-3 rounded-4 small border" id="pdNotas">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold mb-3">Documentos Adjuntos</h6>
+            <div id="pdAttachments" class="d-flex flex-wrap gap-2">
+                <!-- JS -->
+            </div>
+        </div>
+        <div class="modal-footer-modern p-4 pt-0 border-0">
+            <button class="btn btn-primary w-100 py-2 fw-bold" onclick="closePaymentDetailModal()">
+                <i class="fas fa-check me-2"></i> Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Quick Create -->
+<div class="modal-backdrop" id="quickCreateModal">
+    <div class="modal-modern">
+        <div class="modal-header-modern bg-white">
+            <h6 class="fw-bold mb-0" id="quickCreateTitle">Nuevo Registro</h6>
+            <button class="btn-close-modal" onclick="closeQuickCreateModal()">❌</button>
+        </div>
+        <div class="modal-body-modern">
+            <label class="small fw-bold text-muted text-uppercase mb-2 d-block">Nuevo Nombre</label>
+            <div class="quick-input-wrapper mb-4">
+                <input type="text" id="quickCreateInput" placeholder="Escriba aquí..." autocomplete="off">
+            </div>
+
+            <label class="small fw-bold text-muted text-uppercase mb-2 d-block">Administrar Existentes</label>
+            <div id="quickCreateList" class="quick-list-container">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-light flex-grow-1 border fw-bold rounded-4 py-2"
+                    onclick="closeQuickCreateModal()">Cerrar</button>
+                <button class="btn btn-primary flex-grow-1 fw-bold rounded-4 py-2" id="btnConfirmQuickCreate">
+                    <i class="fas fa-check me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nuevo/Editar Gasto de Distribucion desde Caja (wizard 3 pasos) -->
+<div class="modal-backdrop" id="cchGDModal">
+    <div class="modal-modern" style="max-width: 640px;">
+        <div class="modal-header-modern">
+            <h5 class="fw-bold mb-0" id="cchGDModalTitle">Nuevo Gasto de Distribución</h5>
+            <button class="btn-close-modal" onclick="cchGDCloseForm()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <form id="cchGDForm">
+                <input type="hidden" id="cchGDInputName">
+
+                <div class="cch-gd-wizard-steps">
+                    <div class="cch-gd-wizard-step active" data-step="1" onclick="cchGDWizardGoTo(1)">
+                        <div class="cch-gd-wizard-step-circle">1</div>
+                        <div class="cch-gd-wizard-step-label">Datos</div>
+                    </div>
+                    <div class="cch-gd-wizard-step" data-step="2" onclick="cchGDWizardGoTo(2)">
+                        <div class="cch-gd-wizard-step-circle">2</div>
+                        <div class="cch-gd-wizard-step-label">Detalles</div>
+                    </div>
+                    <div class="cch-gd-wizard-step" data-step="3" onclick="cchGDWizardGoTo(3)">
+                        <div class="cch-gd-wizard-step-circle">3</div>
+                        <div class="cch-gd-wizard-step-label">Adjuntos</div>
+                    </div>
+                </div>
+
+                <div class="cch-gd-wizard-panes">
+                    <div class="cch-gd-wizard-pane active" data-step="1">
+                        <h6 class="fw-bold mb-3">Datos del gasto</h6>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Fecha</label>
+                                <input type="date" id="cchGDInputFecha" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Monto</label>
+                                <div class="input-group-modern">
+                                    <span class="input-group-text">S/</span>
+                                    <input type="number" step="0.01" id="cchGDInputMonto" class="form-control" required placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Categoría</label>
+                                <div class="input-group-modern">
+                                    <select id="cchGDInputCategoria" class="form-select" required></select>
+                                    <button type="button" class="btn-quick-add" title="Gestionar categorías"
+                                            onclick="cchGDOpenCatalogModal('Categoria Gasto Distribucion')">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cch-gd-wizard-pane" data-step="2">
+                        <h6 class="fw-bold mb-3">Detalles</h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Método de Pago</label>
+                                <div class="input-group-modern">
+                                    <select id="cchGDInputMetodo" class="form-select" required></select>
+                                    <button type="button" class="btn-quick-add" title="Gestionar métodos"
+                                            onclick="cchGDOpenCatalogModal('Metodo Pago')">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Descripción</label>
+                                <textarea id="cchGDInputDescripcion" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Pedidos vinculados (opcional, 1 o mas)</label>
+                                <div class="cch-gd-pedido-wrap">
+                                    <div class="cch-gd-pedido-toggle">
+                                        <button type="button" class="cch-gd-pedido-btn active" data-tipo="Sales Invoice">Factura</button>
+                                        <button type="button" class="cch-gd-pedido-btn" data-tipo="Sales Order">Borrador</button>
+                                    </div>
+                                    <div class="cch-gd-pedido-search">
+                                        <input type="text" id="cchGDPedidoSearch" class="form-control" placeholder="Buscar cliente o serie..." autocomplete="off">
+                                        <div id="cchGDPedidoResults" class="cch-gd-pedido-results" style="display:none;"></div>
+                                    </div>
+                                    <div id="cchGDPedidoChips" class="cch-gd-pedido-chips"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cch-gd-wizard-pane" data-step="3">
+                        <h6 class="fw-bold mb-3">Adjuntos</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="small text-muted">Comprobantes del gasto</span>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-light border" onclick="cchGDPasteAttachment()">
+                                    <i class="fas fa-paste me-1"></i> Pegar
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light border" onclick="cchGDTriggerUpload()">
+                                    <i class="fas fa-upload me-1"></i> Subir
+                                </button>
+                            </div>
+                        </div>
+                        <div id="cchGDAttachments" class="cch-gd-attachments"></div>
+                        <input type="file" id="cchGDFileInput" accept="image/*,application/pdf" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="cch-gd-wizard-nav">
+                    <button type="button" class="btn btn-light border" id="cchGDWizardBackBtn" onclick="cchGDWizardPrev()" style="display:none;">
+                        <i class="fas fa-arrow-left me-1"></i> Atrás
+                    </button>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button" class="btn btn-light border" onclick="cchGDCloseForm()">Cancelar</button>
+                        <button type="button" class="btn btn-primary fw-bold" id="cchGDWizardNextBtn" onclick="cchGDWizardNext()">
+                            Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary fw-bold" id="cchGDBtnSave" onclick="cchGDSave()" style="display:none;">
+                            <i class="fas fa-save me-1"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sub-modal: clasificar adjunto -->
+<div class="modal-backdrop" id="cchGDAttachCategoryModal">
+    <div class="modal-modern" style="max-width: 420px;">
+        <div class="modal-header-modern bg-white">
+            <h6 class="fw-bold mb-0">Clasificar adjunto</h6>
+            <button class="btn-close-modal" onclick="cchGDCloseAttachModal()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <div class="text-center mb-3">
+                <img id="cchGDAttachPreview" src=""
+                    style="width: 110px; height: 110px; object-fit: cover; border-radius: 16px; border: 3px solid white; box-shadow: var(--shadow-md);">
+            </div>
+            <label class="form-label small fw-bold text-uppercase text-muted mb-2">Categoría</label>
+            <div class="input-group-modern">
+                <select id="cchGDAttachCategorySelect" class="form-select"></select>
+                <button type="button" class="btn-quick-add" title="Gestionar categorías de adjuntos"
+                        onclick="cchGDOpenCatalogModal('Categoria Adjuntos Finanzas')">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-light flex-grow-1 border fw-bold" onclick="cchGDCloseAttachModal()">Cancelar</button>
+                <button class="btn btn-primary flex-grow-1 fw-bold" onclick="cchGDConfirmAttachment()">
+                    <i class="fas fa-check me-1"></i> Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sub-modal: gestionar catálogo -->
+<div class="modal-backdrop" id="cchGDCatalogModal">
+    <div class="modal-modern" style="max-width: 520px;">
+        <div class="modal-header-modern">
+            <h5 class="fw-bold mb-0" id="cchGDCatalogTitle">Catálogo</h5>
+            <button class="btn-close-modal" onclick="cchGDCloseCatalogModal()">❌</button>
+        </div>
+        <div class="modal-body-modern p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="small text-muted" id="cchGDCatalogHint">Cree, edite o elimine registros del catálogo.</span>
+                <button class="btn btn-sm btn-primary fw-bold" onclick="cchGDCatalogAddNew()">
+                    <i class="fas fa-plus me-1"></i> Agregar
+                </button>
+            </div>
+            <div id="cchGDCatalogList" class="d-flex flex-column gap-2"></div>
+            <div id="cchGDCatalogError" class="text-danger small mt-2" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<!-- Lightbox para ampliar imágenes -->
+<div id="imageLightbox" class="image-lightbox" onclick="closeLightbox()">
+    <div class="lightbox-toolbar" onclick="event.stopPropagation()">
+        <a id="lightboxOpenBtn" href="#" target="_blank" class="btn btn-sm btn-light border">
+            <i class="fas fa-external-link-alt me-1"></i> Abrir
+        </a>
+        <button class="btn btn-sm btn-light border" onclick="closeLightbox()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <img id="lightboxImg" src="" alt="Adjunto" onclick="event.stopPropagation()">
+</div>
+
+{% endblock %}
+
+{% block script %}
+{% if not no_access %}
+<script src="/caja_chica/index.js"></script>
+<script src="/caja_chica/mobile.js"></script>
+{% endif %}
+{% endblock %}

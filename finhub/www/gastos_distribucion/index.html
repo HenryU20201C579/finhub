@@ -1,0 +1,358 @@
+{% extends "templates/web.html" %}
+
+{% block style %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="/gastos_distribucion/index.css">
+{% endblock %}
+
+{% block content %}
+{% if no_access %}
+<style>
+    .gd-na-screen {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #f5f6f8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        z-index: 1000;
+    }
+    .gd-na-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 28px 32px; max-width: 480px; width: calc(100% - 40px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .gd-na-brand {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: #111827;
+        padding-bottom: 12px; border-bottom: 1px solid #f1f1f3;
+    }
+    .gd-na-dot { width: 8px; height: 8px; border-radius: 50%; background: #b91c1c; }
+    .gd-na-body { font-size: 14px; color: #374151; line-height: 1.55; margin-top: 16px; }
+    .gd-na-body code {
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 1px 6px; border-radius: 4px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 13px; color: #111827;
+    }
+    .gd-na-roles { margin: 10px 0 0 18px; padding: 0; }
+    .gd-na-roles li { margin: 4px 0; }
+    .gd-na-hint { margin-top: 14px; font-size: 13px; color: #6b7280; }
+</style>
+<div class="gd-na-screen">
+    <div class="gd-na-card">
+        <div class="gd-na-brand">
+            <span class="gd-na-dot"></span>
+            <span>Tiranidos ERP · No permitido</span>
+        </div>
+        <div class="gd-na-body">
+            No tienes permiso para acceder a <b>Gastos de Distribucion</b>.
+            Se requiere alguno de los siguientes roles:
+            <ul class="gd-na-roles">
+                {% for r in required_roles %}
+                <li><code>{{ r }}</code></li>
+                {% endfor %}
+            </ul>
+            <p class="gd-na-hint">
+                Contacta a un administrador para que te asigne el rol correspondiente.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="gd-split" id="gdSplit" data-can-edit="{{ 1 if can_edit else 0 }}">
+    <div class="gd-overlay" id="gdOverlay" onclick="gdCloseDetail()"></div>
+
+    <div class="gd-left" id="gdLeft">
+        <div class="gd-header">
+            <h1 class="gd-title">Gastos de Distribucion</h1>
+            <p class="gd-subtitle">Registro de gastos asociados a distribucion (transporte, envios, combustible, etc.)</p>
+        </div>
+
+        <div class="gd-summary-card">
+            <div class="gd-summary-head">
+                <div>
+                    <span class="gd-summary-kicker">Resumen</span>
+                    <h2 class="gd-summary-title">Metricas principales</h2>
+                </div>
+            </div>
+            <table class="gd-summary-table" aria-label="Resumen de gastos de distribucion">
+                <tbody>
+                    <tr>
+                        <th scope="row">Gastado hoy</th>
+                        <td id="gdStatToday">S/ 0.00</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Total en periodo</th>
+                        <td id="gdStatPeriodo">S/ 0.00</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Registros</th>
+                        <td id="gdStatCount">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="gd-toolbar">
+            <div class="gd-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="gdSearchInput" placeholder="Buscar por serie, categoria o descripcion...">
+            </div>
+            <button class="gd-btn-light-tool" onclick="gdOpenCatalogModal('Categoria Gasto Distribucion')" title="Gestionar Catalogos">
+                <i class="fas fa-cog"></i>
+                <span>Catalogos</span>
+            </button>
+            {% if can_edit %}
+            <button class="gd-btn-add" onclick="gdOpenNew()">
+                <i class="fas fa-plus"></i> Nuevo Gasto
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="gd-filters">
+            <div class="gd-filter-pill">
+                <i class="far fa-calendar-alt"></i>
+                <input type="date" id="gdFilterStart">
+                <span>-</span>
+                <input type="date" id="gdFilterEnd">
+            </div>
+            <div class="gd-filter-pill">
+                <i class="fas fa-tags"></i>
+                <select id="gdFilterCategoria">
+                    <option value="">Todas las categorias</option>
+                </select>
+            </div>
+            <div class="gd-filter-pill">
+                <i class="fas fa-filter"></i>
+                <select id="gdFilterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Pagado">Pagado</option>
+                    <option value="Vencido">Vencido</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="gdList" class="gd-list">
+            <div class="gd-empty"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando...</p></div>
+        </div>
+    </div>
+
+    <div class="gd-right" id="gdRight">
+        <button class="gd-close-pane" onclick="gdCloseDetail()" title="Cerrar">&times;</button>
+
+        <div id="gdDetailEmpty" class="gd-empty-detail">
+            <div class="gd-empty-icon"><i class="fas fa-receipt"></i></div>
+            <h5>Detalle de Gasto</h5>
+            <p>Selecciona un gasto de la lista o crea uno nuevo.</p>
+        </div>
+
+        <div id="gdDetailContent" class="gd-detail d-none">
+            <div class="gd-detail-head">
+                <div class="gd-detail-head-left">
+                    <button class="gd-back" onclick="gdCloseDetail()"><i class="fas fa-arrow-left"></i></button>
+                    <h2 id="gdDetailTitle">Nuevo Gasto de Distribucion</h2>
+                </div>
+                {% if can_edit %}
+                <button id="gdBtnDelete" class="gd-btn-trash d-none" onclick="gdDeleteCurrent()">
+                    <i class="fas fa-trash"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="gd-detail-body">
+                <form id="gdForm" class="gd-wizard" data-wizard="gasto">
+                    <input type="hidden" name="name" id="gdInputName">
+
+                    <div class="gd-wizard-steps" id="gdWizardSteps">
+                        <div class="gd-wizard-step-indicator active" data-step="1" onclick="gdWizardGoTo(1)">
+                            <div class="gd-wizard-step-circle">1</div>
+                            <div class="gd-wizard-step-label">Datos</div>
+                        </div>
+                        <div class="gd-wizard-step-indicator" data-step="2" onclick="gdWizardGoTo(2)">
+                            <div class="gd-wizard-step-circle">2</div>
+                            <div class="gd-wizard-step-label">Detalles</div>
+                        </div>
+                        <div class="gd-wizard-step-indicator" data-step="3" onclick="gdWizardGoTo(3)">
+                            <div class="gd-wizard-step-circle">3</div>
+                            <div class="gd-wizard-step-label">Adjuntos</div>
+                        </div>
+                    </div>
+
+                    <div class="gd-wizard-panes">
+                        <div class="gd-wizard-pane active" data-step="1">
+                            <h6>Datos del gasto</h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="gd-label">Fecha</label>
+                                    <input type="date" name="fecha" id="gdInputFecha" class="form-control" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="gd-label">Monto</label>
+                                    <div class="gd-input-group">
+                                        <span>S/</span>
+                                        <input type="number" step="0.01" name="monto" id="gdInputMonto" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="gd-label">Categoria</label>
+                                    <div class="gd-input-group">
+                                        <select name="categoria" id="gdInputCategoria" class="form-select" required></select>
+                                        {% if can_edit %}
+                                        <button type="button" class="gd-quick-add" title="Gestionar categorias"
+                                                onclick="gdOpenCatalogModal('Categoria Gasto Distribucion')">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gd-wizard-pane" data-step="2">
+                            <h6>Detalles del gasto</h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="gd-label">Metodo de Pago</label>
+                                    <div class="gd-input-group">
+                                        <select name="metodo_pago" id="gdInputMetodo" class="form-select"></select>
+                                        {% if can_edit %}
+                                        <button type="button" class="gd-quick-add" title="Gestionar metodos"
+                                                onclick="gdOpenCatalogModal('Metodo Pago')">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="gd-label">Estado</label>
+                                    <select name="estado" id="gdInputEstado" class="form-select">
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Pagado">Pagado</option>
+                                        <option value="Vencido">Vencido</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="gd-label">Descripcion</label>
+                                    <textarea name="descripcion" id="gdInputDescripcion" class="form-control" rows="3"
+                                        placeholder="Ej: Envio Shalom pedido #1234..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="gd-label">Pedidos vinculados (opcional, 1 o mas)</label>
+                                    <div class="gd-pedido-wrap">
+                                        <div class="gd-pedido-tipo-toggle">
+                                            <button type="button" class="gd-pedido-tipo-btn active" data-tipo="Sales Invoice">Factura</button>
+                                            <button type="button" class="gd-pedido-tipo-btn" data-tipo="Sales Order">Borrador</button>
+                                        </div>
+                                        <div class="gd-pedido-search">
+                                            <input type="text" id="gdPedidoSearch" class="form-control" placeholder="Buscar por cliente o serie..." autocomplete="off">
+                                            <div id="gdPedidoResults" class="gd-pedido-results" style="display:none;"></div>
+                                        </div>
+                                        <div id="gdPedidoChips" class="gd-pedido-chips"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gd-wizard-pane" data-step="3">
+                            <h6>Adjuntos</h6>
+                            <div class="gd-section-head" style="margin-bottom: 12px;">
+                                <span style="font-size:12px; color:var(--gd-muted);">Comprobantes del gasto</span>
+                                {% if can_edit %}
+                                <div class="gd-section-actions">
+                                    <button type="button" class="gd-btn-light" onclick="gdPasteAttachment()"><i class="fas fa-paste"></i> Pegar</button>
+                                    <button type="button" class="gd-btn-light" onclick="gdTriggerUpload()"><i class="fas fa-upload"></i> Subir</button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div id="gdAttachments" class="gd-attachments"></div>
+                        </div>
+                    </div>
+
+                    <div class="gd-wizard-nav">
+                        <div class="gd-wizard-nav-left">
+                            <button type="button" class="gd-wizard-btn" id="gdWizardBackBtn" onclick="gdWizardPrev()" style="display:none;">
+                                <i class="fas fa-arrow-left"></i> Atras
+                            </button>
+                        </div>
+                        <div class="gd-wizard-nav-right">
+                            <button type="button" class="gd-wizard-btn gd-wizard-btn-primary" id="gdWizardNextBtn" onclick="gdWizardNext()">
+                                Siguiente <i class="fas fa-arrow-right"></i>
+                            </button>
+                            {% if can_edit %}
+                            <button type="submit" class="gd-wizard-btn gd-wizard-btn-save" id="gdWizardSaveBtn" style="display:none;">
+                                <i class="fas fa-save"></i> Guardar Gasto
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="gd-modal-backdrop" id="gdAttachCatModal">
+    <div class="gd-modal" style="max-width: 420px;">
+        <div class="gd-modal-head">
+            <h5>Clasificar Adjunto</h5>
+            <button class="gd-close-modal" onclick="gdCloseAttachCatModal()">&times;</button>
+        </div>
+        <div class="gd-modal-body">
+            <label class="gd-label">Categoria</label>
+            <div class="gd-input-group">
+                <select id="gdAttachCatSelect" class="form-select"></select>
+                {% if can_edit %}
+                <button type="button" class="gd-quick-add" title="Gestionar categorias de adjuntos"
+                        onclick="gdOpenCatalogModal('Categoria Adjuntos Finanzas')">
+                    <i class="fas fa-cog"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="gd-modal-foot">
+            <button class="gd-btn-light-full" onclick="gdCloseAttachCatModal()">Cancelar</button>
+            <button class="gd-btn-primary-full" onclick="gdConfirmAttachCat()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div class="gd-modal-backdrop" id="gdCatalogModal">
+    <div class="gd-modal" style="max-width: 620px;">
+        <div class="gd-modal-head">
+            <div style="flex:1;">
+                <h5 id="gdCatalogTitle">Gestionar Catalogo</h5>
+                <select id="gdCatalogSwitcher" class="gd-catalog-switcher" onchange="gdChangeCatalogInModal(this.value)">
+                    <option value="Categoria Gasto Distribucion">Categorias Gasto Distribucion</option>
+                    <option value="Metodo Pago">Metodos de Pago</option>
+                    <option value="Categoria Adjuntos Finanzas">Categorias de Adjuntos</option>
+                </select>
+            </div>
+            <button class="gd-close-modal" onclick="gdCloseCatalogModal()">&times;</button>
+        </div>
+        <div class="gd-modal-body">
+            {% if can_edit %}
+            <div class="gd-catalog-toolbar">
+                <button type="button" class="gd-btn-primary-sm" onclick="gdRenderCatalogForm(null)">
+                    <i class="fas fa-plus"></i> Nuevo
+                </button>
+            </div>
+            {% endif %}
+            <div id="gdCatalogList" class="gd-catalog-list"></div>
+            <div id="gdCatalogForm" class="gd-catalog-form d-none"></div>
+        </div>
+        <div class="gd-modal-foot">
+            <button class="gd-btn-light-full" onclick="gdCloseCatalogModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="gdFilePicker" style="display:none" accept="image/*,.pdf">
+{% endif %}
+{% endblock %}
+
+{% block script %}
+{% if not no_access %}
+<script src="/gastos_distribucion/index.js"></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "fecha",
+  "categoria",
+  "empleado",
+  "monto",
+  "metodo_pago",
+  "estado",
+  "descripcion",
+  "caja_chica",
+  "pago_finanzas_p",
+  "pedidos",
+  "adjuntos"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "label": "naming_series",
+   "options": "GAS-DIS-.YYYY.-.MM.-",
+   "default": "GAS-DIS-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "categoria",
+   "fieldtype": "Link",
+   "label": "Categoria",
+   "options": "Categoria Gasto Distribucion",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "empleado",
+   "fieldtype": "Link",
+   "label": "Empleado",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "metodo_pago",
+   "fieldtype": "Link",
+   "label": "Metodo Pago",
+   "options": "Metodo Pago"
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Pendiente\nPagado\nVencido",
+   "in_list_view": 1,
+   "default": "Pendiente"
+  },
+  {
+   "fieldname": "descripcion",
+   "fieldtype": "Small Text",
+   "label": "Descripcion"
+  },
+  {
+   "fieldname": "caja_chica",
+   "fieldtype": "Link",
+   "label": "Caja Chica",
+   "options": "Caja Chica"
+  },
+  {
+   "fieldname": "pago_finanzas_p",
+   "fieldtype": "Link",
+   "label": "Pago Finanzas P",
+   "options": "Pago Finanzas P",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pedidos",
+   "fieldtype": "Table",
+   "label": "Pedidos Vinculados",
+   "options": "Pedido Gasto Distribucion"
+  },
+  {
+   "fieldname": "adjuntos",
+   "fieldtype": "Table",
+   "label": "Adjuntos",
+   "options": "Finanzas Adjuntos Asociado"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FinHub",
+ "name": "Gastos de Distribucion",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Finanzas-Administrar",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Finanzas-Ver"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:naming_series",
+ "naming_rule": "By \"Naming Series\" field"
+}

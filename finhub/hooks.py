@@ -10,6 +10,18 @@ required_apps = ["erpnext"]
 # Tiles que se mostrarán en el sidebar del launcher.
 launcher_tiles = [
 	{
+		"label": "Caja Chica",
+		"url": "/caja_chica",
+		"icon": "wallet",
+		"role": "Finhub-Caja-Ver",
+	},
+	{
+		"label": "Gastos Distribución",
+		"url": "/gastos_distribucion",
+		"icon": "truck",
+		"role": "Finhub-Finanzas-Ver",
+	},
+	{
 		"label": "Prorrateo de Ventas",
 		"url": "/prorrateo_ventas",
 		"icon": "calculator",

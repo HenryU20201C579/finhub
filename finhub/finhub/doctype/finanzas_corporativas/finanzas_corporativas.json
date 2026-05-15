@@ -1,0 +1,182 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "fecha",
+  "categoria",
+  "fecha_vencimiento",
+  "estado_contador",
+  "empleado",
+  "monto",
+  "metodo_pago",
+  "estado",
+  "descripcion",
+  "recordatorio_activo",
+  "proveedor",
+  "caja_chica",
+  "orden_compra",
+  "adjuntos",
+  "pagos"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "label": "naming_series",
+   "options": "FIN-COR-.YYYY.-.MM.-",
+   "default": "FIN-COR-.YYYY.-.MM.-"
+  },
+  {
+   "fieldname": "fecha",
+   "fieldtype": "Date",
+   "label": "Fecha"
+  },
+  {
+   "fieldname": "categoria",
+   "fieldtype": "Link",
+   "label": "Categoria",
+   "options": "Categoria Gasto"
+  },
+  {
+   "fieldname": "fecha_vencimiento",
+   "fieldtype": "Date",
+   "label": "Fecha Vencimiento"
+  },
+  {
+   "fieldname": "estado_contador",
+   "fieldtype": "Select",
+   "label": "Estado Contador",
+   "options": "Pendiente\nEnviado"
+  },
+  {
+   "fieldname": "empleado",
+   "fieldtype": "Link",
+   "label": "Empleado",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "metodo_pago",
+   "fieldtype": "Link",
+   "label": "Metodo Pago",
+   "options": "Metodo Pago"
+  },
+  {
+   "fieldname": "estado",
+   "fieldtype": "Select",
+   "label": "Estado",
+   "options": "Pendiente\nPagado\nVencido"
+  },
+  {
+   "fieldname": "descripcion",
+   "fieldtype": "Small Text",
+   "label": "Descripcion"
+  },
+  {
+   "fieldname": "recordatorio_activo",
+   "fieldtype": "Check",
+   "label": "Recordatorio Activo",
+   "default": "0"
+  },
+  {
+   "fieldname": "proveedor",
+   "fieldtype": "Data",
+   "label": "Proveedor",
+   "read_only": 1
+  },
+  {
+   "fieldname": "caja_chica",
+   "fieldtype": "Link",
+   "label": "Caja Chica",
+   "options": "Caja Chica"
+  },
+  {
+   "fieldname": "orden_compra",
+   "fieldtype": "Data",
+   "label": "Orden Compra"
+  },
+  {
+   "fieldname": "adjuntos",
+   "fieldtype": "Table",
+   "label": "Adjuntos",
+   "options": "Finanzas Adjuntos Asociado"
+  },
+  {
+   "fieldname": "pagos",
+   "fieldtype": "Table",
+   "label": "Pagos",
+   "options": "Pago finanzas P Asociado"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FinHub",
+ "name": "Finanzas Corporativas",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Finanzas-Administrar",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Finanzas-Ver"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "Finhub-Caja-Administrar",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "share": 1,
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "naming_series:naming_series",
+ "naming_rule": "By \"Naming Series\" field"
+}

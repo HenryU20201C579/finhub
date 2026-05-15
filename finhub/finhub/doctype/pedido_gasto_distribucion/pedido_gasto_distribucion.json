@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pedido_tipo",
+  "pedido",
+  "cliente",
+  "monto"
+ ],
+ "fields": [
+  {
+   "fieldname": "pedido_tipo",
+   "fieldtype": "Select",
+   "label": "Tipo",
+   "options": "Sales Invoice\nSales Order",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "pedido",
+   "fieldtype": "Dynamic Link",
+   "label": "Pedido",
+   "options": "pedido_tipo",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "cliente",
+   "fieldtype": "Data",
+   "label": "Cliente",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "monto",
+   "fieldtype": "Currency",
+   "label": "Monto",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FinHub",
+ "name": "Pedido Gasto Distribucion",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}

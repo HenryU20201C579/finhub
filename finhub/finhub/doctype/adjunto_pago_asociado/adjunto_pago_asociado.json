@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "categoria_pago",
+  "adjunto"
+ ],
+ "fields": [
+  {
+   "fieldname": "categoria_pago",
+   "fieldtype": "Link",
+   "label": "Categoria Pago",
+   "options": "Categoria Pago",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "adjunto",
+   "fieldtype": "Attach",
+   "label": "Adjunto",
+   "in_list_view": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FinHub",
+ "name": "Adjunto Pago Asociado",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1,
+ "editable_grid": 1
+}
