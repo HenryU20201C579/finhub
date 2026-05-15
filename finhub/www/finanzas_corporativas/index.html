@@ -1,0 +1,872 @@
+{% extends "templates/web.html" %}
+
+{% block style %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="/_shared/design_system.css">
+<link rel="stylesheet" href="/_shared/components.css">
+<link rel="stylesheet" href="/finanzas_corporativas/index.css?v=3.4">
+<link rel="stylesheet" href="/finanzas_corporativas/mobile.css?v=3.4">
+{% endblock %}
+
+{% block content %}
+{% if has_access %}
+
+<!-- TOP BAR -->
+<div class="dashboard-topbar d-flex justify-content-between align-items-center mb-3">
+    <!-- Month / Custom Range Selector -->
+    <div class="d-flex align-items-center gap-2 position-relative">
+        <div class="month-navigator d-flex align-items-center gap-2 bg-white rounded-pill px-2 py-1 shadow-sm border">
+            <button class="btn btn-sm btn-icon" id="btnPrevMonth"><i class="fas fa-chevron-left"></i></button>
+            <span class="fs-6 fw-bold mx-2" id="currentMonthLabel" style="min-width: 120px; text-align: center; cursor: pointer;" title="Click para rango personalizado">...</span>
+            <button class="btn btn-sm btn-icon" id="btnNextMonth"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <button class="btn btn-sm btn-icon bg-white rounded-pill shadow-sm border px-3 py-1" id="btnCustomRange" title="Filtro personalizado">
+            <i class="far fa-calendar-alt"></i>
+        </button>
+        <button class="btn btn-sm btn-icon bg-white rounded-pill shadow-sm border px-3 py-1 d-none" id="btnResetMonth" title="Volver a vista mensual">
+            <i class="fas fa-times text-danger"></i>
+        </button>
+
+        <!-- Popover de rango personalizado -->
+        <div id="customRangePopover" class="custom-range-popover" style="display:none; position:absolute; top:100%; left:0; margin-top:8px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.1); padding:14px; min-width:280px; z-index:1050;">
+            <div class="mb-2">
+                <label class="form-label small fw-bold text-uppercase mb-1" style="font-size:.7rem; letter-spacing:.04em;">Desde</label>
+                <input type="date" id="customDateFrom" class="form-control form-control-sm">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-uppercase mb-1" style="font-size:.7rem; letter-spacing:.04em;">Hasta</label>
+                <input type="date" id="customDateTo" class="form-control form-control-sm">
+            </div>
+            <div id="customRangeError" class="alert alert-danger py-1 small mb-2" style="display:none; font-size:.75rem;"></div>
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btnCancelCustomRange">Cancelar</button>
+                <button class="btn btn-sm btn-primary" id="btnApplyCustomRange">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Add action -->
+    <div class="d-flex align-items-center gap-3">
+        {% if can_edit %}
+        <button class="btn btn-primary rounded-pill btn-sm fw-bold px-4 py-2 shadow-sm" onclick="openNewExpense()">
+            + Crear Nuevo
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- SUMMARY KPI CARDS -->
+<div class="row mb-4 g-2">
+    <div class="col-6 col-md-3">
+        <div class="card card-summary shadow-sm border-0 h-100 p-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-square bg-dark text-white rounded p-1"><i class="fas fa-building"></i></div>
+                <span class="text-xs fw-bold text-neutral-500 text-uppercase">Costos Fijos</span>
+            </div>
+            <h2 class="m-0 fw-bold text-dark" id="cardFixedAmount">S/ 0.00</h2>
+            <span class="text-xs text-muted" id="cardPaidLabel">de 0 costos fijos</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-summary shadow-sm border-0 h-100 p-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-square bg-success-50 text-success rounded p-1"><i class="fas fa-check-square"></i></div>
+                <span class="text-xs fw-bold text-neutral-500 text-uppercase">Pagados</span>
+            </div>
+            <h2 class="m-0 fw-bold text-success" id="cardPaidCounter">0</h2>
+            <span class="text-xs text-muted" id="cardPaidSubLabel">costos fijos</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-summary shadow-sm border-0 h-100 p-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-square bg-danger-50 text-danger rounded p-1"><i class="fas fa-clock"></i></div>
+                <span class="text-xs fw-bold text-neutral-500 text-uppercase">Por Pagar</span>
+            </div>
+            <h2 class="m-0 fw-bold text-danger" id="cardPendingAmount">S/ 0.00</h2>
+            <span class="text-xs text-muted">monto pendiente</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-summary shadow-sm border-0 h-100 p-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="icon-square bg-primary-50 text-primary rounded p-1"><i class="fas fa-receipt"></i></div>
+                <span class="text-xs fw-bold text-neutral-500 text-uppercase">Gastos Variables</span>
+            </div>
+            <h2 class="m-0 fw-bold" id="cardVariableAmount" style="color: #f59e0b !important;">S/ 0.00</h2>
+            <span class="text-xs text-muted" id="cardVariableLabel">0 transacciones</span>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile tab bar (hidden on desktop via CSS) -->
+<div class="fc-mobile-tabs" id="fcMobileTabs" role="tablist" aria-label="Tipo de gastos">
+    <button type="button" class="fc-mobile-tab active" data-tab="fijo" role="tab" aria-selected="true">
+        <i class="fas fa-home"></i>
+        <span>Costos Fijos</span>
+        <span class="fc-mobile-tab-count" id="fcMobileTabCountFijo">0</span>
+    </button>
+    <button type="button" class="fc-mobile-tab" data-tab="variable" role="tab" aria-selected="false">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Variables</span>
+        <span class="fc-mobile-tab-count" id="fcMobileTabCountVariable">0</span>
+    </button>
+</div>
+
+<!-- 2-COLUMN DASHBOARD LAYOUT -->
+<div class="row" id="fcDashboardRow" data-mobile-tab="fijo">
+    <!-- LEFT PANE: FIXED COSTS -->
+    <div class="col-lg-6 mb-4" data-fc-col="fijo">
+        <div class="card border-0 shadow-sm overflow-hidden h-100">
+            <div
+                class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-danger-50 text-danger"
+                        style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold m-0 text-dark">Costos Fijos</h5>
+                        <p class="text-muted text-xs m-0">Planilla, alquileres, rentas (se reinician al iniciar mes)</p>
+                    </div>
+                </div>
+                {% if can_edit %}
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="openNewExpense('Fijo')">+
+                    Agregar</button>
+                {% endif %}
+            </div>
+
+            <div class="card-body px-4 pt-0 d-flex flex-column">
+
+                <!-- Progress Bar -->
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
+                    <span class="text-xs fw-bold text-neutral-500" id="fixedProgressLabel">0/0 pagados</span>
+                    <span class="text-xs fw-bold text-success" id="fixedProgressPercent">0%</span>
+                </div>
+                <div class="progress mb-4" style="height: 6px; border-radius: 3px; background-color: #f1f5f9;">
+                    <div class="progress-bar bg-success" id="fixedProgressBar" role="progressbar" style="width: 0%;"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+
+                <!-- Tiles Grid -->
+                <div id="fixedListContainer" class="fc-cat-tiles-grid mb-4">
+                    <div class="text-center p-4 text-muted border rounded mx-auto w-100 fs-7">No hay costos fijos
+                        configurados.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANE: VARIABLE EXPENSES -->
+    <div class="col-lg-6 mb-4" data-fc-col="variable">
+        <div class="card border-0 shadow-sm overflow-hidden h-100">
+            <div
+                class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-success-50 text-success"
+                        style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold m-0 text-dark" style="color: #1e293b !important;">Gastos Variables</h5>
+                        <p class="text-muted text-xs m-0">Gastos esporádicos del mes (compras, caja chica, etc.)</p>
+                    </div>
+                </div>
+                {% if can_edit %}
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                    onclick="openNewExpense('Variable')">+ Agregar</button>
+                {% endif %}
+            </div>
+
+            <div class="card-body px-4 d-flex flex-column h-100">
+                <hr class="mt-0 border-neutral-100">
+
+                <!-- Tiles Grid -->
+                <div id="variableListContainer" class="fc-cat-tiles-grid mb-4">
+                    <div class="text-center p-5 text-muted border rounded border-dashed mx-auto w-100 fs-7">
+                        Sin categorias variables. Agrega una primero.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- EXPENSE DETAIL MODAL with WIZARD (4 pasos) -->
+<div class="modal-backdrop" id="detailExpenseModal">
+    <div class="modal-modern modal-modern--detail" style="max-width: 640px; display: flex; flex-direction: column;">
+
+        <div class="modal-header-modern bg-white">
+            <h2 class="modal-title-modern" id="paneTitle">Detalle de Gasto Corporativo</h2>
+            <div class="d-flex gap-2 align-items-center">
+                <button type="button" class="btn btn-outline-danger btn-sm d-none" id="btnDelete"
+                    onclick="deleteCurrentExpense()" title="Eliminar gasto">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="btn-close-modal" onclick="closeDetailModal()">&times;</button>
+            </div>
+        </div>
+
+        <div class="modal-body-modern" style="flex: 1; overflow-y: auto; padding-top: var(--space-4);">
+            <form id="expenseForm" class="fc-wizard">
+                <input type="hidden" name="name" id="expenseId">
+                <input type="hidden" name="tipo" id="inputTipo">
+
+                <!-- Step Indicators -->
+                <div class="fc-wizard-steps" id="fcWizardSteps" role="tablist" aria-label="Pasos del gasto">
+                    <div class="fc-wizard-step-indicator active" data-step="1" onclick="fcWizardGoTo(1)"
+                        role="tab" aria-current="step" tabindex="0">
+                        <div class="fc-wizard-step-circle">1</div>
+                        <div class="fc-wizard-step-label">Basicos</div>
+                    </div>
+                    <div class="fc-wizard-step-indicator" data-step="2" onclick="fcWizardGoTo(2)" role="tab" tabindex="0">
+                        <div class="fc-wizard-step-circle">2</div>
+                        <div class="fc-wizard-step-label">Proveedor</div>
+                    </div>
+                    <div class="fc-wizard-step-indicator" data-step="3" onclick="fcWizardGoTo(3)" role="tab" tabindex="0">
+                        <div class="fc-wizard-step-circle">3</div>
+                        <div class="fc-wizard-step-label">Pago</div>
+                    </div>
+                    <div class="fc-wizard-step-indicator" data-step="4" onclick="fcWizardGoTo(4)" role="tab" tabindex="0">
+                        <div class="fc-wizard-step-circle">4</div>
+                        <div class="fc-wizard-step-label">Adjuntos</div>
+                    </div>
+                </div>
+
+                <div class="fc-wizard-panes">
+
+                    <!-- Step 1: Basicos -->
+                    <div class="fc-wizard-pane active" data-step="1">
+                        <h6 class="fc-wizard-pane-title"><i class="fas fa-info-circle me-2 text-primary"></i>Datos basicos</h6>
+                        <div class="row">
+                            <div class="col-6 form-group">
+                                <label>Fecha del Gasto <span class="text-danger">*</span></label>
+                                <input type="date" name="fecha" id="inputFecha" class="form-control bg-white shadow-sm" required>
+                            </div>
+                            <div class="col-6 form-group">
+                                <label>Monto (S/) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" name="monto" id="inputMonto"
+                                    class="form-control bg-white shadow-sm text-lg fw-bold" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label>Categoria <span class="text-danger">*</span></label>
+                            <div class="input-group shadow-sm">
+                                <select name="categoria" id="inputCategoria" class="form-select bg-white" required>
+                                    <option value="">Seleccione...</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary bg-white" onclick="quickCreateCategory()" title="Nueva categoria">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger bg-white" onclick="quickDeleteCategory()" title="Eliminar categoria">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex mt-2 align-items-center gap-2">
+                                <div id="badgeTipo" class="badge badge-neutral">Seleccione categoria</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Proveedor -->
+                    <div class="fc-wizard-pane" data-step="2">
+                        <h6 class="fc-wizard-pane-title"><i class="fas fa-building me-2 text-primary"></i>Datos del Proveedor <span class="fc-step-optional">(opcional)</span></h6>
+                        <div class="card border border-neutral-200 shadow-sm pt-3 px-3 pb-1 bg-neutral-50 rounded-lg">
+                            <div class="row">
+                                <div class="col-md-5 form-group position-relative">
+                                    <label>RUC / DNI</label>
+                                    <div class="input-group">
+                                        <input type="text" name="ruc" id="inputRuc" class="form-control bg-white"
+                                            placeholder="Buscar doc..." autocomplete="off">
+                                        <button type="button" class="btn btn-outline-primary bg-white" id="btnNewSupplier"
+                                            title="Nuevo Proveedor">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="rucSearchResults" class="search-results-dropdown-ruc d-none"></div>
+                                </div>
+                                <div class="col-md-7 form-group">
+                                    <label>Razon Social Proveedor</label>
+                                    <input type="text" name="proveedor" id="inputProveedor" class="form-control"
+                                        placeholder="Nombre de la empresa" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label>Descripcion detallada</label>
+                            <textarea name="descripcion" id="inputDescripcion" class="form-control bg-white shadow-sm" rows="3"
+                                placeholder="Motivo o detalle de la compra..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Pago / Vencimiento -->
+                    <div class="fc-wizard-pane" data-step="3">
+                        <h6 class="fc-wizard-pane-title"><i class="fas fa-money-check-alt me-2 text-primary"></i>Pago y vencimiento</h6>
+                        <div class="row">
+                            <div class="col-6 form-group">
+                                <label>Metodo de Pago</label>
+                                <div class="input-group shadow-sm">
+                                    <select name="metodo_pago" id="inputMetodoPago" class="form-select bg-white">
+                                        <option value="">Seleccione...</option>
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary bg-white"
+                                        onclick="quickCreatePaymentMethod()" title="Nuevo metodo de pago">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6 form-group">
+                                <label>Estado Contador</label>
+                                <select name="estado_contador" id="inputEstadoContador" class="form-select bg-white shadow-sm">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Enviado">Enviado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-3 border-neutral-200">
+
+                        <div class="form-check mb-2">
+                            <input type="checkbox" id="toggleVencimiento" class="form-check-input">
+                            <label for="toggleVencimiento" class="text-primary fw-bold cursor-pointer mb-0">
+                                <i class="fas fa-calendar-alt me-1"></i> Asignar fecha de vencimiento / notificar
+                            </label>
+                        </div>
+
+                        <div id="fixedExpenseSection" class="conditional-section hidden shadow-sm border mt-3 bg-white p-3 rounded-lg">
+                            <div class="row">
+                                <div class="col-6 form-group">
+                                    <label>Dia de Vencimiento</label>
+                                    <input type="date" name="fecha_vencimiento" id="inputVencimiento" class="form-control">
+                                </div>
+                                <div class="col-6 form-group">
+                                    <label>Estado Actual</label>
+                                    <select name="estado" id="inputEstado" class="form-select font-weight-bold">
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Pagado">Pagado</option>
+                                        <option value="Vencido">Vencido</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-check mt-2 bg-warning-50 p-2 rounded border border-warning-200">
+                                <input type="checkbox" name="recordatorio_activo" id="inputRecordatorio"
+                                    class="form-check-input ms-1">
+                                <label for="inputRecordatorio" class="mb-0 fw-bold text-warning-700">Activar recordatorio
+                                    automatico por correo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Adjuntos -->
+                    <div class="fc-wizard-pane" data-step="4">
+                        <h6 class="fc-wizard-pane-title d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-paperclip me-2 text-primary"></i>Documentos adjuntos <span class="fc-step-optional">(opcional)</span></span>
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                    class="btn btn-outline-secondary btn-sm rounded-pill shadow-sm bg-white"
+                                    onclick="handlePasteButton()" title="Pegar desde Portapapeles">
+                                    <i class="fas fa-paste"></i> Pegar Ctrl+V
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill shadow-sm bg-white"
+                                    onclick="triggerManualUpload()" title="Subir archivo">
+                                    <i class="fas fa-upload"></i> Subir
+                                </button>
+                            </div>
+                        </h6>
+
+                        <div class="attachments-container border rounded p-3"
+                            style="background: #f8fafc; min-height: 160px;">
+                            <div id="attachmentsListCorp" class="d-flex flex-wrap gap-2">
+                                <p class="text-muted small m-auto py-4 fst-italic">No se han adjuntado facturas o recibos.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer-modern bg-light border-top fc-wizard-nav">
+            <div class="fc-wizard-nav-left">
+                <button type="button" class="btn btn-light fc-wizard-btn" id="fcWizardBackBtn"
+                    onclick="fcWizardPrev()" style="display:none;">
+                    <i class="fas fa-arrow-left me-1"></i> Anterior
+                </button>
+                <button type="button" class="btn btn-link text-muted text-decoration-none" onclick="closeDetailModal()">
+                    Cancelar
+                </button>
+            </div>
+            <div class="fc-wizard-nav-right d-flex gap-2 align-items-center">
+                <span class="fc-wizard-progress text-muted small d-none d-sm-inline" id="fcWizardProgress">Paso 1 de 4</span>
+                <button type="button" class="btn btn-outline-success bg-white shadow-sm d-none" id="btnViewPayments"
+                    onclick="if(document.getElementById('expenseId').value) openPaymentsHistory(event, document.getElementById('expenseId').value)">
+                    <i class="fas fa-money-check-alt me-1"></i> Pagos
+                </button>
+                <button type="button" class="btn btn-primary fc-wizard-btn-primary" id="fcWizardNextBtn"
+                    onclick="fcWizardNext()">
+                    Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+                <button type="submit" form="expenseForm" class="btn btn-success shadow-sm" id="btnSave"
+                    style="display:none;">
+                    <i class="fas fa-save me-2"></i> Guardar Gasto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal: Payment History -->
+<div class="modal-backdrop" id="paymentsHistoryModal">
+    <div class="modal-modern" style="max-width: 600px;">
+        <div class="modal-header-modern">
+            <div>
+                <h2 class="modal-title-modern">Historial de Pagos</h2>
+                <p class="modal-subtitle-modern text-muted mb-0 small" id="phExpenseTitle">Gasto: ...</p>
+            </div>
+            <button class="btn-close-modal" onclick="closePaymentsHistory()">&times;</button>
+        </div>
+        <div class="modal-body-modern">
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-4">
+                    <div class="p-3 rounded bg-light border text-center">
+                        <small class="text-muted d-block text-uppercase text-xs fw-bold">Total</small>
+                        <span class="d-block fs-5 fw-bold text-dark" id="phTotal">S/ 0.00</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 rounded bg-success-light border border-success-light text-center">
+                        <small class="text-success d-block text-uppercase text-xs fw-bold">Pagado</small>
+                        <span class="d-block fs-5 fw-bold text-success" id="phPaid">S/ 0.00</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 rounded bg-danger-light border border-danger-light text-center">
+                        <small class="text-danger d-block text-uppercase text-xs fw-bold">Pendiente</small>
+                        <span class="d-block fs-5 fw-bold text-danger" id="phPending">S/ 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Pagos Registrados</h5>
+                <button class="btn btn-primary btn-sm" onclick="openPaymentModal()">
+                    <i class="fas fa-plus"></i> Registrar Pago
+                </button>
+            </div>
+
+            <!-- List -->
+            <div class="payments-container border rounded p-0 overflow-hidden"
+                style="background: white; max-height: 300px; overflow-y: auto;">
+                <table class="table table-sm table-borderless mb-0">
+                    <thead class="bg-light text-muted text-xs sticky-top">
+                        <tr>
+                            <th class="ps-3">Fecha</th>
+                            <th>Método</th>
+                            <th>Monto</th>
+                            <th class="text-end pe-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsHistoryList">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-backdrop" id="paymentModal">
+    <div class="modal-modern" style="max-width: 450px;">
+        <div class="modal-header-modern">
+            <h2 class="modal-title-modern">Registrar Pago</h2>
+            <button class="btn-close-modal" onclick="closePaymentModal()">&times;</button>
+        </div>
+        <div class="modal-body-modern">
+            <form id="paymentForm">
+                <div class="row">
+                    <div class="col-6 form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="payDate" class="form-control" required>
+                    </div>
+                    <div class="col-6 form-group">
+                        <label>Monto</label>
+                        <input type="number" step="0.01" id="payAmount" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Método de Pago (Finanzas)</label>
+                    <div class="input-group">
+                        <select id="payMethod" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-primary" onclick="quickCreatePaymentMethod()"
+                            title="Nuevo Método de Pago">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ERP Mapping Fields (Shown for PO-linked expenses) -->
+                <div id="erpMappingFields" class="d-none">
+                    <hr class="my-3">
+                    <div class="form-group">
+                        <label>Modo de Pago (ERPNext)</label>
+                        <select id="payMethodERP" class="form-select">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cuenta Bancaria (ERPNext)</label>
+                        <select id="payBankAccountERP" class="form-select">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                    <hr class="my-3">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Documentos Sustentatorios</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary"
+                            onclick="triggerPaymentFileSelect()">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </label>
+
+                    <!-- Hidden Input for File Selection -->
+                    <input type="file" id="hiddenPaymentFileInput" class="d-none" accept="image/*,application/pdf"
+                        multiple onchange="handlePaymentFileSelect(this)">
+
+                    <div class="attachments-manager border rounded p-2 bg-light" style="min-height: 100px;">
+                        <div id="paymentAttachmentsList" class="d-flex flex-column gap-2">
+                            <!-- Dynamic Content -->
+                            <p class="text-muted small text-center py-3 m-0 fst-italic">No hay documentos adjuntos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Create Modal -->
+<div class="modal-backdrop" id="quickCreateModal" style="z-index: 1060;">
+    <div class="modal-modern" style="max-width: 400px;">
+        <div class="modal-header-modern">
+            <h2 class="modal-title-modern" id="quickCreateTitle">Crear Nuevo</h2>
+            <button class="btn-close-modal" onclick="closeQuickCreate()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body-modern">
+            <form id="quickCreateForm">
+                <input type="hidden" id="quickCreateType">
+
+                <div class="form-group">
+                    <label>Nombre <span class="text-danger">*</span></label>
+                    <input type="text" id="quickCreateInput" class="form-control" required>
+                </div>
+
+                <div id="quickCreateExtraFields"></div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="closeQuickCreate()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Select Attachment Category -->
+<div class="modal-backdrop" id="attachmentCategoryModal" style="z-index: 1060;">
+    <div class="modal-modern" style="max-width: 400px;">
+        <div class="modal-header-modern">
+            <h2 class="modal-title-modern">
+                <i class="fas fa-paperclip text-primary"></i> Clasificar Adjunto
+            </h2>
+            <button type="button" class="btn-close-modal" onclick="closeAttachmentModal()">&times;</button>
+        </div>
+        <div class="modal-body-modern">
+            <div class="text-center mb-3">
+                <img id="attachmentPreviewImg" src=""
+                    style="max-height: 150px; border-radius: 8px; border: 1px solid #eee;">
+                <div id="attachmentPreviewPdf" class="d-none text-center py-4 bg-light rounded"
+                    style="border: 1px solid #eee;">
+                    <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                    <div class="mt-2 text-muted fw-bold" id="attachmentPreviewName">Documento PDF</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Categoría del Adjunto</label>
+                <div class="d-flex gap-2">
+                    <select id="attachmentCategorySelect" class="form-select">
+                        <option value="">Seleccione...</option>
+                    </select>
+                    <button type="button" class="btn btn-outline-primary" onclick="quickCreateAttachmentCategory()"
+                        title="Nueva Categoría">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-modern">
+            <button type="button" class="btn btn-secondary" onclick="closeAttachmentModal()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="confirmAttachment()">
+                <i class="fas fa-check"></i> Agregar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: New Supplier with WIZARD (2 pasos) -->
+<div class="modal-backdrop" id="modalNewSupplier" style="z-index: 1060;">
+    <div class="modal-modern" style="max-width: 520px;">
+        <div class="modal-header-modern">
+            <h2 class="modal-title-modern"><i class="fas fa-user-plus me-2 text-primary"></i>Nuevo Proveedor</h2>
+            <button class="btn-close-modal" onclick="closeModalNewSupplier()">&times;</button>
+        </div>
+        <div class="modal-body-modern">
+            <form id="formNewSupplier" class="fcs-wizard">
+
+                <div class="fcs-wizard-steps" id="fcsWizardSteps" role="tablist" aria-label="Pasos del proveedor">
+                    <div class="fcs-wizard-step-indicator active" data-step="1" onclick="fcsWizardGoTo(1)" role="tab" aria-current="step" tabindex="0">
+                        <div class="fcs-wizard-step-circle">1</div>
+                        <div class="fcs-wizard-step-label">Identidad</div>
+                    </div>
+                    <div class="fcs-wizard-step-indicator" data-step="2" onclick="fcsWizardGoTo(2)" role="tab" tabindex="0">
+                        <div class="fcs-wizard-step-circle">2</div>
+                        <div class="fcs-wizard-step-label">Ubicacion</div>
+                    </div>
+                </div>
+
+                <div class="fcs-wizard-panes">
+
+                    <div class="fcs-wizard-pane active" data-step="1">
+                        <h6 class="fcs-wizard-pane-title"><i class="fas fa-id-card me-2 text-primary"></i>Identificacion fiscal</h6>
+                        <div class="form-group mb-3">
+                            <label>RUC / DNI <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" id="newSuppRuc" class="form-control" required
+                                    placeholder="Numero de documento">
+                                <button type="button" class="btn btn-outline-primary" id="btnQueryNewSupp"
+                                    title="Consultar RUC/DNI">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-1"><i class="fas fa-magic me-1"></i>Pulsa la lupa para autocompletar via SUNAT/RENIEC</small>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Nombre / Razon Social <span class="text-danger">*</span></label>
+                            <input type="text" id="newSuppName" class="form-control" required placeholder="Nombre completo">
+                        </div>
+                    </div>
+
+                    <div class="fcs-wizard-pane" data-step="2">
+                        <h6 class="fcs-wizard-pane-title"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Ubicacion y contacto <span class="fc-step-optional">(opcional)</span></h6>
+                        <div class="form-group mb-3">
+                            <label>Direccion</label>
+                            <input type="text" id="newSuppAddress" class="form-control" placeholder="Direccion fiscal">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 form-group mb-3">
+                                <label>Departamento</label>
+                                <input type="text" id="newSuppDept" class="form-control" placeholder="Ej: Lima">
+                            </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label>Provincia</label>
+                                <input type="text" id="newSuppProv" class="form-control" placeholder="Ej: Lima">
+                            </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label>Distrito</label>
+                                <input type="text" id="newSuppDist" class="form-control" placeholder="Ej: Miraflores">
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Web / Redes</label>
+                            <input type="text" id="newSuppWeb" class="form-control" placeholder="Sitio web o Instagram">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="fcs-wizard-nav d-flex justify-content-between gap-2 mt-3 pt-3 border-top">
+                    <button type="button" class="btn btn-light" id="fcsWizardBackBtn"
+                        onclick="fcsWizardPrev()" style="display:none;">
+                        <i class="fas fa-arrow-left me-1"></i> Anterior
+                    </button>
+                    <div class="d-flex gap-2 ms-auto align-items-center">
+                        <span class="text-muted small d-none d-sm-inline" id="fcsWizardProgress">Paso 1 de 2</span>
+                        <button type="button" class="btn btn-secondary" onclick="closeModalNewSupplier()">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="fcsWizardNextBtn" onclick="fcsWizardNext()">
+                            Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                        <button type="submit" class="btn btn-success" id="btnSaveNewSupp" style="display:none;">
+                            <i class="fas fa-save me-1"></i> Crear Proveedor
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Category Drawer -->
+<div class="fc-cat-drawer-backdrop" id="catDrawerBackdrop" onclick="closeCategoryDrawer()"></div>
+<aside class="fc-cat-drawer" id="categoryDrawer" aria-hidden="true">
+    <div class="fc-cat-drawer-header">
+        <div class="fc-cat-drawer-title-row">
+            <div class="fc-cat-drawer-icon" id="catDrawerIcon"><i class="fas fa-tag"></i></div>
+            <div class="fc-cat-drawer-heading">
+                <h4 class="fw-bold m-0" id="catDrawerName">Categoria</h4>
+                <small class="text-muted d-block" id="catDrawerMeta"></small>
+            </div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-sm btn-outline-secondary" id="catDrawerEditBtn"
+                onclick="openCategoryAppearance()" title="Editar apariencia">
+                <i class="fas fa-palette"></i>
+            </button>
+            <button class="btn btn-sm btn-primary rounded-pill px-3" id="catDrawerAddBtn"
+                onclick="addExpenseFromDrawer()">
+                <i class="fas fa-plus me-1"></i> Agregar
+            </button>
+            <button class="btn-close-modal" onclick="closeCategoryDrawer()">&times;</button>
+        </div>
+    </div>
+    <div class="fc-cat-drawer-body" id="catDrawerBody">
+        <!-- Items rendered dynamically -->
+    </div>
+</aside>
+
+<!-- Category Appearance Modal -->
+<div class="modal-backdrop" id="categoryAppearanceModal" style="z-index: 1080;">
+    <div class="modal-modern" style="max-width: 440px;">
+        <div class="modal-header-modern">
+            <h2 class="modal-title-modern"><i class="fas fa-palette me-2 text-primary"></i>Apariencia de categoria</h2>
+            <button class="btn-close-modal" onclick="closeCategoryAppearance()">&times;</button>
+        </div>
+        <div class="modal-body-modern">
+            <div class="text-center mb-3">
+                <div id="catApprPreview" class="fc-cat-tile-icon fc-cat-tile-icon--lg mx-auto"></div>
+                <div class="fw-bold mt-2" id="catApprName"></div>
+            </div>
+            <div class="form-group mb-3">
+                <label>Icono (imagen)</label>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="file" id="catApprImageInput" accept="image/*" class="form-control">
+                    <button type="button" class="btn btn-outline-danger" id="catApprImageClear"
+                        title="Quitar imagen">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-1">PNG, JPG o SVG. Si no hay imagen se usa el icono de abajo.</small>
+            </div>
+            <div class="form-group mb-3">
+                <label>Icono (elegir de lista)</label>
+                <div id="catApprIconPicker" class="fc-icon-picker"></div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <small class="text-muted">Solo aplica si no hay imagen subida.</small>
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0" id="catApprIconClear">
+                        <i class="fas fa-times me-1"></i>Quitar icono
+                    </button>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <label>Color</label>
+                <div class="d-flex align-items-center gap-3">
+                    <input type="color" id="catApprColor" class="form-control form-control-color" style="width: 72px; height: 44px;">
+                    <span class="text-muted small" id="catApprColorValue">#4f46e5</span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-secondary" onclick="closeCategoryAppearance()">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="catApprSaveBtn" onclick="saveCategoryAppearance()">
+                    <i class="fas fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<style>
+    .fc-na-screen {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #f5f6f8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        z-index: 1000;
+    }
+    .fc-na-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 28px 32px; max-width: 480px; width: calc(100% - 40px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .fc-na-brand {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: #111827;
+        padding-bottom: 12px; border-bottom: 1px solid #f1f1f3;
+    }
+    .fc-na-dot { width: 8px; height: 8px; border-radius: 50%; background: #b91c1c; }
+    .fc-na-body { font-size: 14px; color: #374151; line-height: 1.55; margin-top: 16px; }
+    .fc-na-body code {
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 1px 6px; border-radius: 4px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 13px; color: #111827;
+    }
+    .fc-na-roles { margin: 10px 0 0 18px; padding: 0; }
+    .fc-na-roles li { margin: 4px 0; }
+    .fc-na-hint { margin-top: 14px; font-size: 13px; color: #6b7280; }
+</style>
+<div class="fc-na-screen">
+    <div class="fc-na-card">
+        <div class="fc-na-brand">
+            <span class="fc-na-dot"></span>
+            <span>FinHub · No permitido</span>
+        </div>
+        <div class="fc-na-body">
+            No tienes permiso para acceder a <b>Finanzas Corporativas</b>.
+            Se requiere alguno de los siguientes roles:
+            <ul class="fc-na-roles">
+                {% for r in required_roles %}
+                <li><code>{{ r }}</code></li>
+                {% endfor %}
+            </ul>
+            <p class="fc-na-hint">
+                Contacta a un administrador para que te asigne el rol correspondiente.
+            </p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+{% if has_access %}
+<script>
+window.FC_CAN_EDIT = {{ 'true' if can_edit else 'false' }};
+</script>
+<script src="/finanzas_corporativas/finanzas_corp.js?v=3.4"></script>
+<script src="/finanzas_corporativas/mobile_corp.js?v=2.1"></script>
+{% endif %}
+{% endblock %}

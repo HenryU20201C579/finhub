@@ -33,6 +33,12 @@ launcher_tiles = [
 		"icon": "trending-up",
 		"role": "Finhub-Finanzas-Ver",
 	},
+	{
+		"label": "Finanzas Corporativas",
+		"url": "/finanzas_corporativas",
+		"icon": "landmark",
+		"role": "Finhub-Finanzas-Ver",
+	},
 ]
 
 fixtures = [
