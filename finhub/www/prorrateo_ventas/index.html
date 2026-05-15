@@ -1,0 +1,210 @@
+{% extends "templates/web.html" %}
+{% block navbar %}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+{% if no_access %}
+<style>
+    .pv-na-screen {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #f5f6f8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        z-index: 1000;
+    }
+    .pv-na-card {
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 28px 32px; max-width: 480px; width: calc(100% - 40px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .pv-na-brand {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; font-weight: 600; color: #111827;
+        padding-bottom: 12px; border-bottom: 1px solid #f1f1f3;
+    }
+    .pv-na-dot { width: 8px; height: 8px; border-radius: 50%; background: #b91c1c; }
+    .pv-na-body { font-size: 14px; color: #374151; line-height: 1.55; margin-top: 16px; }
+    .pv-na-body code {
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 1px 6px; border-radius: 4px;
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 13px; color: #111827;
+    }
+    .pv-na-roles { margin: 10px 0 0 18px; padding: 0; }
+    .pv-na-roles li { margin: 4px 0; }
+    .pv-na-hint { margin-top: 14px; font-size: 13px; color: #6b7280; }
+</style>
+<div class="pv-na-screen">
+    <div class="pv-na-card">
+        <div class="pv-na-brand">
+            <span class="pv-na-dot"></span>
+            <span>FinHub Tiranidos · No permitido</span>
+        </div>
+        <div class="pv-na-body">
+            No tienes permiso para acceder a <b>Prorrateo de Ventas</b>.
+            Se requiere alguno de los siguientes roles:
+            <ul class="pv-na-roles">
+                {% for r in required_roles %}
+                <li><code>{{ r }}</code></li>
+                {% endfor %}
+            </ul>
+            <p class="pv-na-hint">
+                Contacta a un administrador para que te asigne el rol correspondiente.
+            </p>
+        </div>
+    </div>
+</div>
+{% else %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div style="display: flex; height: 100vh; width: 100vw; margin: 0; padding: 0;">
+    <div class="pv-main">
+        <div id="pv-loader" class="pv-loader">
+            <div class="pv-spinner">Cargando datos de prorrateo...</div>
+        </div>
+
+        <div class="pv-content">
+            <!-- Header -->
+            <div class="pv-page-header">
+                <div>
+                    <div class="pv-page-title">Prorrateo por Ventas</div>
+                    <div class="pv-page-subtitle">Desglose de costos fijos prorrateados por cada venta del periodo</div>
+                </div>
+                <div class="pv-header-right" style="margin-left: auto;">
+                    <input class="pv-input" style="width:160px;" id="pv-filter-q"
+                        placeholder="Buscar factura / orden..." onkeyup="window.pvFetch()">
+                    <select class="pv-select" style="width:140px;" id="pv-filter-canal" onchange="window.pvFetch()">
+                        <option value="">Todos los canales</option>
+                        {% for tienda in lista_tiendas %}
+                        <option value="{{ tienda.name }}">{{ tienda.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="date" class="pv-input" style="width:auto;" id="pv-filter-desde">
+                    <span style="color:var(--text-tertiary);font-size:.85rem;">a</span>
+                    <input type="date" class="pv-input" style="width:auto;" id="pv-filter-hasta">
+                    <button class="pv-btn pv-btn-secondary" onclick="window.pvExport()">
+                        <i data-lucide="download" style="width:14px;height:14px;"></i> Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info bar: formula -->
+            <div class="pv-info-bar" id="pv-formula-bar" style="display:none;">
+                <i data-lucide="calculator" style="width:18px;height:18px;"></i>
+                <span id="pv-formula-text"></span>
+            </div>
+
+            <!-- Summary -->
+            <div class="pv-summary-bar">
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Ventas</div>
+                    <div class="pv-summary-val" id="pv-sum-count">0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Ingreso Total</div>
+                    <div class="pv-summary-val" style="color:var(--brand)" id="pv-sum-ingreso">S/ 0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Costo Productos</div>
+                    <div class="pv-summary-val" style="color:var(--negative)" id="pv-sum-costo">S/ 0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Prorrateo Total</div>
+                    <div class="pv-summary-val" style="color:var(--violet-600)" id="pv-sum-prorrateo">S/ 0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Envio Total</div>
+                    <div class="pv-summary-val" style="color:var(--amber-600)" id="pv-sum-envio">S/ 0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Comision Total</div>
+                    <div class="pv-summary-val" style="color:var(--negative)" id="pv-sum-comision">S/ 0</div>
+                </div>
+                <div class="pv-summary-cell">
+                    <div class="pv-summary-label">Margen Neto</div>
+                    <div class="pv-summary-val" id="pv-sum-margen">S/ 0</div>
+                </div>
+            </div>
+
+            <!-- Commission breakdown -->
+            <div class="pv-card" id="commission-breakdown-bar" style="margin-bottom:24px; display:none;">
+                <div
+                    style="padding: 16px 18px 0; font-size:.72rem; font-family:var(--font-mono); font-weight:700; letter-spacing:.08em; color:var(--text-tertiary); text-transform:uppercase;">
+                    Comisiones por método de pago
+                </div>
+                <div id="commission-tags-container"
+                    style="display:flex; gap:12px; flex-wrap:wrap; padding: 14px 18px 18px;"></div>
+            </div>
+
+            <!-- Table -->
+            <div class="pv-card">
+                <div class="pv-table-wrap">
+                    <table class="pv-table">
+                        <thead>
+                            <tr>
+                                <th title="Orden de Venta (Sales Order) vinculada a la factura">Orden Venta</th>
+                                <th title="Factura de Venta (Sales Invoice)">Factura</th>
+                                <th title="Canal de venta o tienda de origen">Canal</th>
+                                <th class="right" title="Monto total facturado al cliente (Base Grand Total)">
+                                    <span style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Ingreso
+                                        Venta</span>
+                                </th>
+                                <th class="right"
+                                    title="Suma del costo de compra estandar de los productos vendidos (qty x precio compra)">
+                                    <span style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Costo
+                                        Venta</span>
+                                </th>
+                                <th class="right"
+                                    title="Costo de embalaje + caja segun Costo Variable (por tienda/courier)">
+                                    <span
+                                        style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Packing</span>
+                                </th>
+                                <th class="right"
+                                    title="Costo fijo prorrateado segun reglas de Regla Prorracteo: (Gastos Fijos + Caja Chica) / N Facturas x Peso%">
+                                    <span
+                                        style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Prorrateado</span>
+                                </th>
+                                <th class="right" title="Costo de envio interno del Sales Order">
+                                    <span
+                                        style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Envio</span>
+                                </th>
+                                <th class="right" title="Comision de venta registrada en la factura para el vendedor/a">
+                                    <span style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Comision
+                                        Venta</span>
+                                </th>
+                                <th class="right"
+                                    title="Comision de venta calculada por reglas de Comisiones (custom_comision de Sales Invoice)">
+                                    <span style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Comision M.
+                                        Pago</span>
+                                </th>
+                                <th class="right"
+                                    title="Margen Neto = Ingreso - Costo Venta - Embalaje - Prorrateado - Envio - Comision">
+                                    <span style="border-bottom:1px dotted var(--text-tertiary);cursor:help;">Margen
+                                        Neto</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="pv-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="pv-empty" class="pv-empty" style="display:none;">
+                    <div class="pv-empty-title">Sin resultados</div>
+                    <div class="pv-empty-desc">No se encontraron ventas para el periodo y filtros seleccionados.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/prorrateo_ventas/index.js"></script>
+<style>
+    {
+        % include "www/prorrateo_ventas/index.css" %
+    }
+</style>
+{% endif %}
+{% endblock %}
