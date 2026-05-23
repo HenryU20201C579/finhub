@@ -22,13 +22,10 @@ jobs:
           cd ~/frappe-bench/apps/finhub
           git pull origin main
 
-      - name: Migrate if doctypes changed
+      - name: Migrate all sites
         run: |
-          cd ~/frappe-bench/apps/finhub
-          if git diff HEAD~1 --name-only | grep -q "finhub/doctype/"; then
-            cd ~/frappe-bench
-            bench --site erp.tiranidos.com migrate
-          fi
+          cd ~/frappe-bench
+          bench --site all migrate
 
       - name: Restart and clear cache
         run: |
@@ -36,4 +33,4 @@ jobs:
           for i in 1 2 3; do
             bench restart && break || sleep 10
           done
-          bench --site erp.tiranidos.com clear-cache
+          bench --site all clear-cache
