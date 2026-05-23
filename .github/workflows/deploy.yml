@@ -33,4 +33,4 @@ jobs:
           for i in 1 2 3; do
             bench restart && break || sleep 10
           done
-          bench --site all clear-cache
+          bench --site all clear-website-cache
