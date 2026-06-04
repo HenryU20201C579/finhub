@@ -825,3 +825,62 @@ body {
   .er-pl-section, .er-kpi-card { box-shadow: none; border: 1px solid #ccc; }
   .er-kpi-card { cursor: default; }
 }
+
+/* ============================================================
+   DARK MODE — Estado de Resultados (/estado_resultados)
+   ============================================================ */
+html[data-theme="dark"] {
+    --bg: #0f1115;
+    --surface: #171a20;
+    --text: #ffffff;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.06);
+}
+
+/* Wrappers Frappe + body para que no quede franja blanca a los costados */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .web-page-container,
+html[data-theme="dark"] .web-page,
+html[data-theme="dark"] .web-page-content,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .page-content-wrapper,
+html[data-theme="dark"] .main-section,
+html[data-theme="dark"] .layout-main-section,
+html[data-theme="dark"] main.container,
+html[data-theme="dark"] .container {
+    background: #0f1115 !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] body { min-height: 100vh; margin: 0; overflow-x: hidden; }
+
+/* Textos secundarios y muted */
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-secondary { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] h1, html[data-theme="dark"] h2,
+html[data-theme="dark"] h3, html[data-theme="dark"] h4,
+html[data-theme="dark"] h5, html[data-theme="dark"] h6 { color: #ffffff !important; }
+
+/* Inputs / botones del header (date range pill, print btn) */
+html[data-theme="dark"] .er-header-pill,
+html[data-theme="dark"] .er-print-btn,
+html[data-theme="dark"] .er-popover,
+html[data-theme="dark"] .er-drawer {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+    color: #ffffff !important;
+}
+
+/* Tabla del estado de resultados */
+html[data-theme="dark"] table { background: transparent !important; color: #ffffff; }
+html[data-theme="dark"] thead, html[data-theme="dark"] th {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] tbody tr, html[data-theme="dark"] td {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] tbody tr:hover { background: rgba(255, 255, 255, 0.03) !important; }
