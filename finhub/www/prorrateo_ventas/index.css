@@ -265,3 +265,26 @@ th[title]:hover::after, span[title]:hover::after {
     text-transform: none;
 }
 th[title], span[title] { position: relative; }
+
+/* ============================================================
+   DARK MODE — Prorrateo por Ventas
+   ============================================================ */
+html[data-theme="dark"] {
+    --white: #171a20;
+    --gray-50: #1f232a;
+    --gray-100: #262a31;
+    --gray-200: rgba(255, 255, 255, 0.08);
+    --gray-300: rgba(255, 255, 255, 0.15);
+    --gray-400: rgba(255, 255, 255, 0.45);
+    --gray-500: rgba(255, 255, 255, 0.55);
+    --gray-600: #c9ccd1;
+    --gray-900: #ffffff;
+    --bg: #0f1115;
+    --surface: #171a20;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    --text-primary: #ffffff;
+    --text-secondary: #c9ccd1;
+    --text-tertiary: rgba(255, 255, 255, 0.55);
+}
+html[data-theme="dark"] body { background: #0f1115 !important; color: #ffffff; }

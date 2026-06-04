@@ -1080,3 +1080,95 @@ body {
 .gd-pedido-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gd-pedido-chip-x { background: transparent; border: 0; color: #1864ab; cursor: pointer; padding: 0; opacity: .7; }
 .gd-pedido-chip-x:hover { opacity: 1; }
+
+/* ============================================================
+   DARK MODE — Gastos de Distribución
+   ============================================================ */
+html[data-theme="dark"] {
+    --gd-bg: #0f1115;
+    --gd-text: #ffffff;
+    --gd-muted: rgba(255, 255, 255, 0.55);
+    --gd-border: rgba(255, 255, 255, 0.08);
+    --gd-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --gd-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Cards y superficies con #fff hardcoded → #171a20 en dark */
+html[data-theme="dark"] body { background: #0f1115 !important; color: #ffffff; }
+html[data-theme="dark"] .gd-summary-card,
+html[data-theme="dark"] .gd-btn-light-tool,
+html[data-theme="dark"] .gd-filter-pill,
+html[data-theme="dark"] .gd-card,
+html[data-theme="dark"] .gd-detail,
+html[data-theme="dark"] .gd-modal,
+html[data-theme="dark"] .gd-catalog-item,
+html[data-theme="dark"] .gd-catalog-form,
+html[data-theme="dark"] .gd-pedido-results {
+    background: #171a20 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Header banner (titulo + subtitulo arriba) */
+html[data-theme="dark"] .gd-header,
+html[data-theme="dark"] .gd-banner {
+    background: #171a20 !important;
+}
+
+/* Inputs y selects */
+html[data-theme="dark"] .gd-search-input,
+html[data-theme="dark"] .gd-filter-pill input,
+html[data-theme="dark"] .gd-filter-pill select,
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    background: #171a20 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] select { color-scheme: dark; }
+
+/* Tablas */
+html[data-theme="dark"] table {
+    background: transparent !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] thead, html[data-theme="dark"] th {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] tbody tr, html[data-theme="dark"] td {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Botones */
+html[data-theme="dark"] .gd-btn-light-tool:hover,
+html[data-theme="dark"] .gd-filter-pill:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Modal overlay */
+html[data-theme="dark"] .gd-modal-overlay,
+html[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Headers / textos */
+html[data-theme="dark"] h1, html[data-theme="dark"] h2,
+html[data-theme="dark"] h3, html[data-theme="dark"] h4,
+html[data-theme="dark"] h5, html[data-theme="dark"] h6 { color: #ffffff !important; }
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-secondary { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] .text-dark { color: #ffffff !important; }
