@@ -1093,8 +1093,29 @@ html[data-theme="dark"] {
     --gd-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* Cards y superficies con #fff hardcoded → #171a20 en dark */
-html[data-theme="dark"] body { background: #0f1115 !important; color: #ffffff; }
+/* Cards y superficies con #fff hardcoded → #171a20 en dark
+   También cubre los wrappers de Frappe (web-page-container,
+   page-content-wrapper, main.container, etc) para que no haya
+   franjas blancas arriba/abajo/derecha del contenido principal. */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .web-page-container,
+html[data-theme="dark"] .web-page,
+html[data-theme="dark"] .web-page-content,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .page-content-wrapper,
+html[data-theme="dark"] .main-section,
+html[data-theme="dark"] .layout-main-section,
+html[data-theme="dark"] main.container,
+html[data-theme="dark"] .container {
+    background: #0f1115 !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] body {
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+}
 html[data-theme="dark"] .gd-summary-card,
 html[data-theme="dark"] .gd-btn-light-tool,
 html[data-theme="dark"] .gd-filter-pill,

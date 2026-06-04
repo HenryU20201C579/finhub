@@ -287,4 +287,18 @@ html[data-theme="dark"] {
     --text-secondary: #c9ccd1;
     --text-tertiary: rgba(255, 255, 255, 0.55);
 }
-html[data-theme="dark"] body { background: #0f1115 !important; color: #ffffff; }
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .web-page-container,
+html[data-theme="dark"] .web-page,
+html[data-theme="dark"] .web-page-content,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .page-content-wrapper,
+html[data-theme="dark"] .main-section,
+html[data-theme="dark"] .layout-main-section,
+html[data-theme="dark"] main.container,
+html[data-theme="dark"] .container {
+    background: #0f1115 !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] body { min-height: 100vh; margin: 0; overflow-x: hidden; }

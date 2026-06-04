@@ -1022,10 +1022,15 @@ html[data-theme="dark"] .container,
 html[data-theme="dark"] .split-container,
 html[data-theme="dark"] .left-pane,
 html[data-theme="dark"] .right-pane,
-html[data-theme="dark"] .expense-list {
+html[data-theme="dark"] .expense-list,
+html[data-theme="dark"] .web-page,
+html[data-theme="dark"] .web-page-content,
+html[data-theme="dark"] .main-section,
+html[data-theme="dark"] .layout-main-section {
     background: #0f1115 !important;
     color: #ffffff;
 }
+html[data-theme="dark"] body { min-height: 100vh; margin: 0; overflow-x: hidden; }
 
 /* Stat cards (los 3 de arriba) */
 html[data-theme="dark"] .stat-card-modern {
