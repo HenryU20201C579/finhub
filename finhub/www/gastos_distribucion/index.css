@@ -1193,3 +1193,43 @@ html[data-theme="dark"] h5, html[data-theme="dark"] h6 { color: #ffffff !importa
 html[data-theme="dark"] .text-muted,
 html[data-theme="dark"] .text-secondary { color: rgba(255, 255, 255, 0.55) !important; }
 html[data-theme="dark"] .text-dark { color: #ffffff !important; }
+
+/* Refinos especificos para gastos_distribucion en dark — coherencia visual */
+html[data-theme="dark"] .gd-summary-card {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] .gd-summary-kicker { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] .gd-summary-title { color: #ffffff !important; }
+html[data-theme="dark"] .gd-summary-table tr + tr th,
+html[data-theme="dark"] .gd-summary-table tr + tr td {
+    border-top-color: rgba(255, 255, 255, 0.06) !important;
+}
+html[data-theme="dark"] .gd-summary-table th { color: rgba(255, 255, 255, 0.6) !important; }
+html[data-theme="dark"] .gd-summary-table td { color: #ffffff !important; }
+
+/* Header banner (titulo principal) sin borde lateral raro */
+html[data-theme="dark"] .gd-header { background: transparent !important; }
+html[data-theme="dark"] .gd-subtitle { color: rgba(255, 255, 255, 0.55) !important; }
+
+/* Empty state (folder icon + "No hay registros") */
+html[data-theme="dark"] .gd-empty,
+html[data-theme="dark"] .gd-empty-state,
+html[data-theme="dark"] .empty-state {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+html[data-theme="dark"] .gd-empty svg,
+html[data-theme="dark"] .gd-empty-state svg,
+html[data-theme="dark"] .empty-state svg { opacity: 0.4; }
+
+/* Cualquier borde rojo/cancelar bg sutil que estuviera quedando claro */
+html[data-theme="dark"] .gd-summary-row,
+html[data-theme="dark"] .gd-summary-table tr { background: transparent !important; }
+
+/* Quitar shadows pesadas que en dark se ven como halos blancos */
+html[data-theme="dark"] .gd-card,
+html[data-theme="dark"] .gd-detail,
+html[data-theme="dark"] .gd-modal,
+html[data-theme="dark"] .gd-summary-card { box-shadow: none !important; }
