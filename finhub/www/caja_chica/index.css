@@ -1007,3 +1007,131 @@ html {
     z-index: 2;
 }
 .file-preview-item img { cursor: zoom-in; }
+/* ============================================================
+   DARK MODE — Caja Chica (/caja_chica)
+   ============================================================ */
+
+/* Backgrounds principales */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .web-page-container,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .page-content-wrapper,
+html[data-theme="dark"] main.container,
+html[data-theme="dark"] .container,
+html[data-theme="dark"] .split-container,
+html[data-theme="dark"] .left-pane,
+html[data-theme="dark"] .right-pane,
+html[data-theme="dark"] .expense-list {
+    background: #0f1115 !important;
+    color: #ffffff;
+}
+
+/* Stat cards (los 3 de arriba) */
+html[data-theme="dark"] .stat-card-modern {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] .stat-label { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] .stat-value { color: #ffffff !important; }
+
+/* Soft-tinted icons backgrounds (no tocar — sus colores semánticos sirven en ambos temas) */
+
+/* Filter section */
+html[data-theme="dark"] .filter-section-modern {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .filter-pill {
+    background: #1f232a !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html[data-theme="dark"] .filter-pill select,
+html[data-theme="dark"] .filter-pill input,
+html[data-theme="dark"] .search-input-modern {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .search-input-wrapper {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html[data-theme="dark"] .search-input-modern::placeholder { color: rgba(255, 255, 255, 0.45) !important; }
+
+/* Caja cards (cuando haya listado) */
+html[data-theme="dark"] .caja-card,
+html[data-theme="dark"] .cch-gd-card,
+html[data-theme="dark"] .cch-gd-pedido-results,
+html[data-theme="dark"] .cch-gd-attachment-item,
+html[data-theme="dark"] #cchGDCatalogList .cch-gd-cat-row {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .caja-card:hover,
+html[data-theme="dark"] .caja-card.selected {
+    background: #1f232a !important;
+    border-color: rgba(139, 144, 255, 0.30) !important;
+}
+
+/* Tablas/listados */
+html[data-theme="dark"] table {
+    background: transparent !important;
+    color: #ffffff;
+}
+html[data-theme="dark"] table thead,
+html[data-theme="dark"] table th {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] table tbody tr,
+html[data-theme="dark"] table td {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+
+/* Botones */
+html[data-theme="dark"] .btn-light,
+html[data-theme="dark"] .cch-gd-pedido-btn {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html[data-theme="dark"] .cch-gd-pedido-btn.active {
+    background: rgba(139, 144, 255, 0.18) !important;
+    color: #a5b4fc !important;
+}
+
+/* Headers / textos */
+html[data-theme="dark"] .page-title-modern { color: #ffffff !important; }
+html[data-theme="dark"] .page-subtitle-modern { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-secondary { color: rgba(255, 255, 255, 0.55) !important; }
+html[data-theme="dark"] .text-dark { color: #ffffff !important; }
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6 { color: #ffffff !important; }
+
+/* Soft-tinted bg (bg-warning-soft, bg-info-soft, etc) — mantenerlos pero un poco mas opacos */
+html[data-theme="dark"] .bg-warning-soft,
+html[data-theme="dark"] .bg-info-soft,
+html[data-theme="dark"] .bg-primary-soft,
+html[data-theme="dark"] .bg-success-soft {
+    opacity: 0.9;
+}
+
+/* Modal backdrops y popovers */
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .modal-header,
+html[data-theme="dark"] .modal-body,
+html[data-theme="dark"] .modal-footer {
+    background: #171a20 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
