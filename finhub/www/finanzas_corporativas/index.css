@@ -1340,12 +1340,22 @@ body {
    DARK MODE — drawer lateral (.fc-cat-drawer) y expense cards
    ───────────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .fc-cat-drawer {
-    background: var(--surface) !important;
+    background: #171A1F !important;  /* sólido, evita semi-transparente */
     color: var(--neutral-900) !important;
-    box-shadow: -16px 0 40px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: -16px 0 40px rgba(0, 0, 0, 0.7) !important;
 }
 [data-theme="dark"] .fc-cat-drawer-backdrop {
-    background: rgba(0, 0, 0, 0.55) !important;
+    background: rgba(0, 0, 0, 0.85) !important;  /* opaco, ya no se ve el dashboard */
+    backdrop-filter: blur(8px) !important;
+}
+/* Modal backdrop tambien mas opaco en dark */
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(8px) !important;
+}
+/* Refuerzo opacidad del modal-modern por si var(--surface) traia alpha */
+[data-theme="dark"] .modal-modern {
+    background: #171A1F !important;
 }
 [data-theme="dark"] .fc-cat-drawer-header {
     background: var(--surface) !important;
