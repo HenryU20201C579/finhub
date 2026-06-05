@@ -861,3 +861,159 @@ def create_proveedor(data):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "CREATE-PROVEEDOR-ERROR")
         return {"status": "error", "message": str(e)}
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# REPLICACION MENSUAL DE GASTOS FIJOS
+# El dia 1 de cada mes, los gastos fijos del mes anterior (excepto la
+# categoria 'Planilla' que tiene su propio mecanismo de sync) se replican
+# en el mes nuevo con estado 'Pendiente'. Idempotente: re-correr no
+# duplica. Match para no duplicar: (categoria, proveedor) o fallback a
+# (categoria, descripcion) si no hay proveedor.
+# ─────────────────────────────────────────────────────────────────────────
+
+import calendar as _calendar
+from datetime import date as _date
+
+
+def _prev_month(target_year, target_month):
+    """Devuelve (prev_year, prev_month) del mes anterior."""
+    if target_month == 1:
+        return target_year - 1, 12
+    return target_year, target_month - 1
+
+
+def _expense_match_key(exp):
+    """Clave para detectar duplicados al replicar. Prioriza (categoria,
+    proveedor); si no hay proveedor usa (categoria, descripcion truncada)."""
+    cat = (exp.get("categoria") or "").strip()
+    prov = (exp.get("proveedor") or "").strip()
+    if prov:
+        return (cat, "prov", prov)
+    desc = (exp.get("descripcion") or "").strip()[:80]
+    return (cat, "desc", desc)
+
+
+def _replicate_fixed_expenses_for(target_year, target_month):
+    """Genera los gastos fijos del mes target copiando del mes anterior.
+    No-op si target ya tiene los gastos esperados. Devuelve resumen."""
+    if not frappe.db.exists("DocType", "Finanzas Corporativas"):
+        return {"status": "noop", "message": "Finanzas Corporativas no disponible"}
+
+    prev_year, prev_month = _prev_month(target_year, target_month)
+    prev_start = f"{prev_year}-{prev_month:02d}-01"
+    _, prev_last = _calendar.monthrange(prev_year, prev_month)
+    prev_end = f"{prev_year}-{prev_month:02d}-{prev_last}"
+
+    target_start = f"{target_year}-{target_month:02d}-01"
+    _, target_last = _calendar.monthrange(target_year, target_month)
+    target_end = f"{target_year}-{target_month:02d}-{target_last}"
+
+    # Gastos fijos del mes anterior (excepto Planilla y excepto Cancelados)
+    rows_prev = frappe.db.sql("""
+        SELECT fc.name, fc.categoria, fc.empleado, fc.monto,
+               fc.metodo_pago, fc.descripcion, fc.recordatorio_activo,
+               fc.proveedor, fc.ruc, fc.fecha_vencimiento, fc.estado,
+               fc.caja_chica, fc.orden_compra,
+               cg.tipo_gasto
+        FROM `tabFinanzas Corporativas` fc
+        LEFT JOIN `tabCategoria Gasto` cg ON cg.name = fc.categoria
+        WHERE fc.fecha BETWEEN %s AND %s
+          AND cg.tipo_gasto = 'Fijo'
+          AND fc.categoria != 'Planilla'
+          AND COALESCE(fc.estado, '') != 'Cancelado'
+    """, (prev_start, prev_end), as_dict=True)
+
+    if not rows_prev:
+        return {
+            "status": "noop",
+            "message": f"Sin gastos fijos en {prev_year}-{prev_month:02d}",
+            "creados": 0, "omitidos": 0,
+        }
+
+    # Gastos ya existentes del mes target (para evitar duplicar)
+    rows_target = frappe.db.sql("""
+        SELECT categoria, proveedor, descripcion
+        FROM `tabFinanzas Corporativas`
+        WHERE fecha BETWEEN %s AND %s
+          AND categoria != 'Planilla'
+    """, (target_start, target_end), as_dict=True)
+    existing_keys = {_expense_match_key(r) for r in rows_target}
+
+    creados = 0
+    omitidos = 0
+    detalles = []
+
+    for exp in rows_prev:
+        key = _expense_match_key(exp)
+        if key in existing_keys:
+            omitidos += 1
+            continue
+
+        # Construir el nuevo gasto. NO copiamos: name, fecha, estado, adjuntos, pagos.
+        nuevo = frappe.get_doc({
+            "doctype": "Finanzas Corporativas",
+            "fecha": target_start,  # dia 1 del mes nuevo
+            "categoria": exp.get("categoria"),
+            "empleado": exp.get("empleado"),
+            "monto": exp.get("monto"),
+            "metodo_pago": exp.get("metodo_pago"),
+            "descripcion": exp.get("descripcion"),
+            "recordatorio_activo": exp.get("recordatorio_activo"),
+            "proveedor": exp.get("proveedor"),
+            "ruc": exp.get("ruc"),
+            "caja_chica": exp.get("caja_chica"),
+            "orden_compra": exp.get("orden_compra"),
+            "estado": "Pendiente",
+        })
+        try:
+            nuevo.flags.ignore_permissions = True
+            nuevo.insert()
+            creados += 1
+            detalles.append({
+                "categoria": exp.get("categoria"),
+                "proveedor": exp.get("proveedor"),
+                "monto": float(exp.get("monto") or 0),
+                "doc": nuevo.name,
+            })
+            existing_keys.add(key)
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), "REPLICATE-FIXED-EXPENSE")
+
+    frappe.db.commit()
+
+    return {
+        "status": "success",
+        "periodo": f"{target_year}-{target_month:02d}",
+        "fuente": f"{prev_year}-{prev_month:02d}",
+        "creados": creados,
+        "omitidos": omitidos,
+        "detalles": detalles,
+        "message": f"{creados} gasto(s) replicado(s) desde {prev_year}-{prev_month:02d}, {omitidos} omitido(s) (ya existian).",
+    }
+
+
+@frappe.whitelist()
+def replicate_fixed_expenses(month=None, year=None):
+    """Endpoint manual para replicar gastos fijos a un mes especifico.
+    Si no se especifica mes/anio, usa el mes actual."""
+    err = _require_admin()
+    if err:
+        return err
+    today_d = _date.today()
+    target_month = int(month) if month else today_d.month
+    target_year = int(year) if year else today_d.year
+    return _replicate_fixed_expenses_for(target_year, target_month)
+
+
+def run_monthly_fixed_replication():
+    """Tarea programada que el dia 1 de cada mes replica los gastos fijos
+    del mes anterior al mes actual. Se invoca desde el cron del scheduler.
+    Idempotente: si ya corrio antes para este mes, no duplica.
+    """
+    today_d = _date.today()
+    try:
+        result = _replicate_fixed_expenses_for(today_d.year, today_d.month)
+        frappe.logger().info(f"[finanzas_corp] Replicacion mensual: {result.get('message')}")
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "CRON-REPLICATE-FIXED")

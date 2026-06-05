@@ -51,6 +51,10 @@
     <!-- Main Add action -->
     <div class="d-flex align-items-center gap-3">
         {% if can_edit %}
+        <button class="btn btn-outline-secondary rounded-pill btn-sm px-3 py-2" onclick="replicarFijosMesAnterior()"
+                title="Copia los gastos fijos del mes anterior al mes actual (salvo Planilla, que tiene su propio mecanismo). Idempotente: si ya estan, no duplica.">
+            <i class="fas fa-sync-alt me-1"></i>Replicar fijos del mes anterior
+        </button>
         <button class="btn btn-primary rounded-pill btn-sm fw-bold px-4 py-2 shadow-sm" onclick="openNewExpense()">
             + Crear Nuevo
         </button>

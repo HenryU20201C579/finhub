@@ -846,6 +846,30 @@ function showExpenseDetailByClick(expenseId) {
     }
 }
 
+function replicarFijosMesAnterior() {
+    if (!confirm('Se replicaran los gastos fijos del mes anterior al mes actual.\n\nNo se duplica lo que ya existe. La categoria Planilla se omite (tiene su propio mecanismo de sync).\n\n¿Continuar?')) return;
+    const btn = event && event.target ? event.target.closest('button') : null;
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Replicando...'; }
+    frappe.call({
+        method: 'finhub.www.finanzas_corporativas.index.replicate_fixed_expenses',
+        callback: function(r) {
+            if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+            const m = r.message || {};
+            if (m.status === 'success' || m.status === 'noop') {
+                alert(`Periodo: ${m.periodo || ''} (fuente ${m.fuente || ''})\n\nCreados: ${m.creados || 0}\nOmitidos (ya existian): ${m.omitidos || 0}\n\n${m.message || ''}`);
+                if (window.location.reload) window.location.reload();
+            } else {
+                alert('Error: ' + (m.message || 'no se pudo replicar'));
+            }
+        },
+        error: function() {
+            if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+            alert('Error de red al replicar');
+        }
+    });
+}
+
 function openNewExpense(typeForce = null, categoriaForce = null) {
     document.getElementById('expenseForm').reset();
     document.getElementById('expenseId').value = '';

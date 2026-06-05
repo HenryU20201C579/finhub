@@ -44,3 +44,14 @@ launcher_tiles = [
 fixtures = [
 	{"dt": "Role", "filters": [["role_name", "like", "Finhub-%"]]},
 ]
+
+# Cron: el dia 1 de cada mes a las 02:00 AM, replica los gastos fijos del
+# mes anterior al mes actual (excepto categoria 'Planilla' que tiene su
+# propio mecanismo via hrhub). Idempotente: si ya corrio, no duplica.
+scheduler_events = {
+	"cron": {
+		"0 2 1 * *": [
+			"finhub.www.finanzas_corporativas.index.run_monthly_fixed_replication",
+		],
+	},
+}
