@@ -1335,3 +1335,78 @@ body {
 [data-theme="dark"] .modal-body-modern hr {
     border-color: var(--border) !important;
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   DARK MODE — drawer lateral (.fc-cat-drawer) y expense cards
+   ───────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .fc-cat-drawer {
+    background: var(--surface) !important;
+    color: var(--neutral-900) !important;
+    box-shadow: -16px 0 40px rgba(0, 0, 0, 0.5) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-backdrop {
+    background: rgba(0, 0, 0, 0.55) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-header {
+    background: var(--surface) !important;
+    border-bottom-color: var(--border) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-heading h4 {
+    color: var(--neutral-900) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-heading small,
+[data-theme="dark"] .fc-cat-drawer-heading .text-muted {
+    color: var(--neutral-400) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-body {
+    background: var(--neutral-50) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-body .expense-item {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--neutral-900) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-body .expense-item:hover {
+    background: var(--surface-subtle) !important;
+    border-color: var(--neutral-200) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-empty {
+    color: var(--neutral-400) !important;
+}
+[data-theme="dark"] .fc-cat-drawer-empty i {
+    color: var(--neutral-200) !important;
+}
+[data-theme="dark"] .fc-cat-drawer .btn-outline-secondary {
+    background: var(--neutral-100) !important;
+    color: var(--neutral-900) !important;
+    border-color: var(--border) !important;
+}
+[data-theme="dark"] .fc-cat-drawer .btn-close-modal {
+    background: var(--neutral-100) !important;
+    color: var(--neutral-900) !important;
+}
+/* Badges de estado dentro del drawer */
+[data-theme="dark"] .fc-cat-drawer .status-badge { color: var(--neutral-900) !important; }
+[data-theme="dark"] .fc-cat-drawer .status-pending,
+[data-theme="dark"] .status-pending {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+}
+[data-theme="dark"] .status-paid {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34d399 !important;
+}
+[data-theme="dark"] .status-overdue {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #f87171 !important;
+}
+/* Monto y descripcion dentro de expense-item */
+[data-theme="dark"] .fc-cat-drawer .expense-item .expense-amount,
+[data-theme="dark"] .fc-cat-drawer .expense-item strong,
+[data-theme="dark"] .fc-cat-drawer .expense-item .fw-bold {
+    color: var(--neutral-900) !important;
+}
+[data-theme="dark"] .fc-cat-drawer .expense-item .text-muted,
+[data-theme="dark"] .fc-cat-drawer .expense-item small {
+    color: var(--neutral-400) !important;
+}
