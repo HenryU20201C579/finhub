@@ -75,7 +75,7 @@
    "fieldname": "estado",
    "fieldtype": "Select",
    "label": "Estado",
-   "options": "Pendiente\nPagado\nVencido"
+   "options": "Pendiente\nPagado\nVencido\nCancelado"
   },
   {
    "fieldname": "descripcion",
