@@ -308,6 +308,11 @@ function updateStatsDashboard(expenses) {
     let vCount = 0;
 
     expenses.forEach(e => {
+        // Las Finanzas Cancelado representan compras revertidas; no se
+        // suman al total ni al monto pendiente. Se siguen mostrando en
+        // la lista del side drawer con su descripcion '[Cancelado] ...'.
+        if (e.estado === 'Cancelado') return;
+
         const type = e.tipo || (categoriesData.find(c => c.name === e.categoria) || {}).tipo_gasto;
         const totalPaid = (e.pagos || []).reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
         const amount = parseFloat(e.monto || 0);
@@ -479,11 +484,16 @@ function renderDashboardLayout(expenses) {
         const totalPaid = (exp.pagos || []).reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
         const amount = parseFloat(exp.monto || 0);
         const cat = exp.categoria || 'Sin categoria';
+        const isCancelled = exp.estado === 'Cancelado';
         const isPaid = (exp.estado === 'Pagado' || totalPaid >= amount);
 
         const bucket = type === 'Fijo' ? FC_GROUPS_FIXED : FC_GROUPS_VARIABLE;
         if (!bucket[cat]) bucket[cat] = { items: [], total: 0, paid: 0, pending: 0, paidCount: 0 };
-        bucket[cat].items.push({ exp, type, amount, totalPaid, isPaid });
+        // Las canceladas se siguen mostrando en la lista del drawer (para
+        // trazabilidad) pero NO suman al total ni al pending de la
+        // categoria.
+        bucket[cat].items.push({ exp, type, amount, totalPaid, isPaid, isCancelled });
+        if (isCancelled) return;
         bucket[cat].total += amount;
         bucket[cat].paid += Math.min(totalPaid, amount);
         if (isPaid) bucket[cat].paidCount++;
@@ -793,6 +803,27 @@ function createExpenseHTMLCard(exp, type, amount, totalPaid) {
 
     const titleText = exp.descripcion || exp.categoria;
     const subtitleCat = exp.descripcion ? `<span class="text-xs text-muted d-block"><i class="fas fa-tag me-1"></i>${exp.categoria}</span>` : '';
+    const isCancelled = exp.estado === 'Cancelado';
+
+    // Las Finanzas Cancelado se muestran en gris con badge "CANCELADO" y
+    // monto tachado. No suman al pendiente del header (filtrado en
+    // updateMetrics y en el aggregate por categoria).
+    if (isCancelled) {
+        card.style.opacity = '0.55';
+        card.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-square bg-neutral-100 text-neutral-600 rounded"><i class="fas fa-ban"></i></div>
+                <div>
+                    <h6 class="m-0 fw-bold text-dark d-flex align-items-center">${titleText}
+                        <span class="badge bg-neutral-100 text-neutral-700 border ms-2">CANCELADO</span>
+                    </h6>
+                    ${subtitleCat}
+                </div>
+            </div>
+            <div class="fw-bold text-muted fs-6" style="text-decoration: line-through;">S/ ${formatCurrency(amount)}</div>
+        `;
+        return card;
+    }
 
     if (type === 'Fijo') {
         const isPaid = (exp.estado === 'Pagado' || totalPaid >= amount);
