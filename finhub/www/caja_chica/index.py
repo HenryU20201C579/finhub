@@ -305,10 +305,14 @@ def save_caja(data):
         # --- INTEGRACIÓN: Crear Finanza Corporativa automáticamente ---
         if is_new:
             try:
+                # Categoria Gasto "Caja Chica" tipo Variable (gastos cambian
+                # mes a mes, no son fijos como Planilla/Alquiler)
                 if not frappe.db.exists("Categoria Gasto", "Caja Chica"):
                     cat = frappe.new_doc("Categoria Gasto")
                     cat.nombre = "Caja Chica"
-                    cat.tipo_gasto = "Fijo"
+                    cat.tipo_gasto = "Variable"
+                    cat.icono = "wallet"
+                    cat.color = "#f59e0b"
                     cat.flags.ignore_permissions = True
                     cat.insert(ignore_permissions=True)
 
@@ -506,12 +510,76 @@ def delete_payment(name, caja_name):
 
 @frappe.whitelist()
 def delete_caja(name):
+    """Elimina una Caja Chica con cascada completa:
+    1. Borra los Pago Finanzas P vinculados (via child Pago finanzas P Asociado)
+    2. Borra la Finanza Corporativa espejo (vinculada por caja_chica=name)
+    3. Borra la Caja Chica
+    Devuelve resumen de lo eliminado para el frontend.
+    """
     _require_admin()
-
+    deleted_payments = []
+    deleted_finanza = None
     try:
-        frappe.delete_doc("Caja Chica", name)
-        return {"status": "success", "message": "Caja Chica eliminada"}
+        # 1. Recolectar payment IDs antes de borrar
+        if frappe.db.exists("Caja Chica", name):
+            caja = frappe.get_doc("Caja Chica", name)
+            payment_ids = [p.serie for p in (caja.pagos or []) if p.serie]
+        else:
+            payment_ids = []
+
+        # 2. Encontrar Finanza Corporativa vinculada
+        finanza_name = _get_finanza_for_caja(name)
+
+        # 3. Si la Finanza tiene pagos adicionales no vinculados a la caja,
+        #    los recogemos tambien para limpieza completa
+        finanza_payment_ids = set(payment_ids)
+        if finanza_name:
+            finanza = frappe.get_doc("Finanzas Corporativas", finanza_name)
+            for p in (finanza.pagos or []):
+                if p.serie:
+                    finanza_payment_ids.add(p.serie)
+
+        # 4. Borrar la Finanza Corporativa (esto tambien borra sus child rows)
+        if finanza_name:
+            try:
+                frappe.delete_doc("Finanzas Corporativas", finanza_name,
+                                  ignore_permissions=True, force=True)
+                deleted_finanza = finanza_name
+            except Exception:
+                frappe.log_error(frappe.get_traceback(),
+                                 f"DELETE-CAJA-FINANZA {finanza_name}")
+
+        # 5. Borrar la Caja Chica (esto tambien borra sus child rows)
+        if frappe.db.exists("Caja Chica", name):
+            frappe.delete_doc("Caja Chica", name, ignore_permissions=True, force=True)
+
+        # 6. Borrar los Pago Finanzas P que ya no tienen ningun padre
+        for pid in finanza_payment_ids:
+            if not frappe.db.exists("Pago Finanzas P", pid):
+                continue
+            # Verificar si sigue referenciado en algun otro lado
+            remaining = frappe.db.sql(
+                "SELECT name FROM `tabPago finanzas P Asociado` WHERE serie = %s LIMIT 1",
+                (pid,),
+            )
+            if not remaining:
+                try:
+                    frappe.delete_doc("Pago Finanzas P", pid,
+                                      ignore_permissions=True, force=True)
+                    deleted_payments.append(pid)
+                except Exception:
+                    frappe.log_error(frappe.get_traceback(),
+                                     f"DELETE-CAJA-PAGO {pid}")
+
+        frappe.db.commit()
+        return {
+            "status": "success",
+            "message": "Caja Chica eliminada",
+            "deleted_finanza": deleted_finanza,
+            "deleted_payments": deleted_payments,
+        }
     except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "DELETE-CAJA-CASCADE-ERROR")
         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
