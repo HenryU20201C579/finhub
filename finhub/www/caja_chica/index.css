@@ -1140,3 +1140,92 @@ html[data-theme="dark"] .modal-footer {
     color: #ffffff !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ============================================================
+   Dark mode: Henry reporto 2026-06-09 elementos con bg blanco
+   ============================================================ */
+/* Banner gigante de la categoria global (era #fff puro) */
+html[data-theme="dark"] .global-category-stats {
+    background: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .global-category-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .global-category-card:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Caja card interna: header (caja-icon area) y amounts strip */
+html[data-theme="dark"] .caja-icon {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .caja-amounts {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Progress bars: track translucido sobre dark */
+html[data-theme="dark"] .progress-bar-wrap,
+html[data-theme="dark"] .category-stat-bar {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Status badges (ABIERTA verde claro, etc.) */
+html[data-theme="dark"] .status-badge.status-open {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+}
+html[data-theme="dark"] .status-badge.status-closed {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Botones bg soft (icons KPI cards) */
+html[data-theme="dark"] .stat-icon.bg-primary-soft {
+    background: rgba(99, 102, 241, 0.22) !important;
+    color: #a5b4fc !important;
+}
+html[data-theme="dark"] .stat-icon.bg-warning-soft {
+    background: rgba(245, 158, 11, 0.22) !important;
+    color: #fbbf24 !important;
+}
+html[data-theme="dark"] .stat-icon.bg-info-soft {
+    background: rgba(14, 165, 233, 0.22) !important;
+    color: #7dd3fc !important;
+}
+html[data-theme="dark"] .stat-icon.bg-success-soft {
+    background: rgba(16, 185, 129, 0.22) !important;
+    color: #6ee7b7 !important;
+}
+
+/* Boton cerrar drawer (X) */
+html[data-theme="dark"] .btn-close-pane {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+html[data-theme="dark"] .btn-close-pane:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Tabs Caja / Gastos Distribucion en drawer */
+html[data-theme="dark"] .cch-tab {
+    color: rgba(255, 255, 255, 0.55) !important;
+    background: transparent !important;
+}
+html[data-theme="dark"] .cch-tab.active {
+    color: #a5b4fc !important;
+    border-bottom-color: #a5b4fc !important;
+}
+html[data-theme="dark"] .cch-tabs-bar,
+html[data-theme="dark"] .nav-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
