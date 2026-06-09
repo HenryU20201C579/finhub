@@ -1372,3 +1372,15 @@ html[data-theme="dark"] .bg-primary-soft.p-2.rounded-circle {
     background: rgba(99, 102, 241, 0.22) !important;
     color: #a5b4fc !important;
 }
+
+/* Texto del valor 'S/ 5.00' dentro de las cards de categoria (era
+ * var(--neutral-900) = gris oscuro casi invisible en dark) */
+html[data-theme="dark"] .global-category-amount {
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .global-category-name {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+html[data-theme="dark"] .global-category-percent {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
