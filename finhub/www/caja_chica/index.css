@@ -1216,16 +1216,111 @@ html[data-theme="dark"] .btn-close-pane:hover {
     background: rgba(255, 255, 255, 0.12) !important;
 }
 
-/* Tabs Caja / Gastos Distribucion en drawer */
+/* Tabs Caja / Gastos Distribucion en drawer (el class real es cch-tab-btn) */
+html[data-theme="dark"] .cch-tab-btn,
 html[data-theme="dark"] .cch-tab {
     color: rgba(255, 255, 255, 0.55) !important;
     background: transparent !important;
 }
+html[data-theme="dark"] .cch-tab-btn.active,
 html[data-theme="dark"] .cch-tab.active {
     color: #a5b4fc !important;
     border-bottom-color: #a5b4fc !important;
 }
+html[data-theme="dark"] .cch-tab-btn:hover {
+    color: #ffffff !important;
+}
 html[data-theme="dark"] .cch-tabs-bar,
 html[data-theme="dark"] .nav-tabs {
     border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================================
+   Modales (Ver Pagos, Registrar Pago, etc) - tienen modal-modern
+   con background: white hardcoded
+   ============================================================ */
+html[data-theme="dark"] .modal-modern {
+    background: #171a20 !important;
+    color: #ffffff !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+html[data-theme="dark"] .modal-header-modern,
+html[data-theme="dark"] .modal-header-modern.bg-white {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .modal-body-modern {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+html[data-theme="dark"] .btn-close-modal {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Cards de stats dentro del modal Ver Pagos (Fondo Inicial / Total Pagado / Saldo Disponible) */
+html[data-theme="dark"] .payment-stat-card,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] [class*="stat-card"]:not(.kpi-card) {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+
+/* Tabla de pagos dentro del modal */
+html[data-theme="dark"] .modal-modern table thead th {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .modal-modern table tbody td {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Boton Registrar Pago dentro del modal y demas botones primary */
+html[data-theme="dark"] .modal-modern .btn-primary,
+html[data-theme="dark"] .modal-modern .btn-add-payment {
+    color: #ffffff !important;
+}
+
+/* Inputs dentro de los modales (Fecha, Monto, etc.) */
+html[data-theme="dark"] .modal-modern input[type="text"],
+html[data-theme="dark"] .modal-modern input[type="number"],
+html[data-theme="dark"] .modal-modern input[type="date"],
+html[data-theme="dark"] .modal-modern select,
+html[data-theme="dark"] .modal-modern textarea {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .modal-modern input::placeholder,
+html[data-theme="dark"] .modal-modern textarea::placeholder {
+    color: rgba(255, 255, 255, 0.40) !important;
+}
+
+/* Botones Pegar No / Subir (de uploads dentro del modal) */
+html[data-theme="dark"] .modal-modern .btn-light,
+html[data-theme="dark"] .modal-modern .btn-outline-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* CA-CH-2026-... codigo de serie sobre la card de caja (caja-code o caja-name) */
+html[data-theme="dark"] .caja-card .caja-code,
+html[data-theme="dark"] .caja-card .caja-name,
+html[data-theme="dark"] .caja-card h3,
+html[data-theme="dark"] .caja-card h4,
+html[data-theme="dark"] .caja-card .caja-title {
+    color: #ffffff !important;
 }
