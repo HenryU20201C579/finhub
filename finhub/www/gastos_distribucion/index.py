@@ -113,7 +113,7 @@ def get_initial_data():
 	cajas_abiertas = frappe.get_all(
 		"Caja Chica",
 		filters={"estado": "Abierta"},
-		fields=["name", "responsable", "saldo_restante", "monto_inicial", "fecha"],
+		fields=["name", "responsable", "saldo_restante", "monto", "fecha"],
 		order_by="fecha desc, creation desc"
 	)
 
@@ -126,7 +126,7 @@ def get_initial_data():
 				"name": c.name,
 				"responsable": c.responsable,
 				"saldo_restante": float(c.saldo_restante or 0),
-				"monto_inicial": float(c.monto_inicial or 0),
+				"monto_inicial": float(c.monto or 0),
 				"fecha": str(c.fecha) if c.fecha else None,
 			}
 			for c in cajas_abiertas
