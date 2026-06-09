@@ -1166,6 +1166,91 @@ html[data-theme="dark"] .gd-detail {
     background: #171a20 !important;
 }
 
+/* ============================================================
+   Drawer/Wizard del detalle: botones, step indicators, etc.
+   Henry reporto 2026-06-09: circulos numerados (1/2/3), boton cerrar,
+   tabs y botones light tenian bg blanco hardcoded.
+   ============================================================ */
+
+/* Boton cerrar (X rojo arriba a la derecha) */
+html[data-theme="dark"] .gd-close-pane {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f87171 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+html[data-theme="dark"] .gd-close-pane:hover {
+    background: rgba(248, 113, 113, 0.18) !important;
+    border-color: #f87171 !important;
+}
+
+/* Wizard: step indicators (DATOS / DETALLES / ADJUNTOS) */
+html[data-theme="dark"] .gd-wizard-step-circle {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: transparent !important;
+}
+html[data-theme="dark"] .gd-wizard-step-indicator.active .gd-wizard-step-circle {
+    background: var(--gd-primary, #6366f1) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18) !important;
+}
+html[data-theme="dark"] .gd-wizard-step-indicator.done .gd-wizard-step-circle {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .gd-wizard-step-label {
+    color: rgba(255, 255, 255, 0.55) !important;
+}
+html[data-theme="dark"] .gd-wizard-step-indicator.active .gd-wizard-step-label {
+    color: #a5b4fc !important;
+}
+html[data-theme="dark"] .gd-wizard-step-indicator.done .gd-wizard-step-label {
+    color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .gd-wizard-steps {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .gd-wizard-step-indicator:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Botones del wizard (Anterior / Siguiente / etc.) */
+html[data-theme="dark"] .gd-wizard-btn {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .gd-wizard-btn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Botones light genericos (Pegar / Subir, etc.) */
+html[data-theme="dark"] .gd-btn-light,
+html[data-theme="dark"] .gd-btn-light-full {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .gd-btn-light:hover,
+html[data-theme="dark"] .gd-btn-light-full:hover {
+    background: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Toggle Factura/Borrador (.gd-pedido-tipo-*) */
+html[data-theme="dark"] .gd-pedido-tipo-toggle {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+html[data-theme="dark"] .gd-pedido-tipo-btn {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+html[data-theme="dark"] .gd-pedido-tipo-btn.active {
+    background: rgba(99, 102, 241, 0.20) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
 /* Header banner (titulo + subtitulo arriba) */
 html[data-theme="dark"] .gd-header,
 html[data-theme="dark"] .gd-banner {
