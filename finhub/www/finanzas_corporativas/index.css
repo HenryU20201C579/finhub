@@ -1420,3 +1420,57 @@ body {
 [data-theme="dark"] .fc-cat-drawer .expense-item small {
     color: var(--neutral-400) !important;
 }
+
+/* ============================================================
+   Dark mode: fc-cat-tile (tarjetas de categoria Planilla/Alquiler/etc.)
+   Heredan bg blanco hardcoded en :root; sin reglas dark previas.
+   ============================================================ */
+[data-theme="dark"] .fc-cat-tile {
+    background: #1f232a !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+[data-theme="dark"] .fc-cat-tile:hover {
+    border-color: rgba(139, 144, 255, 0.35) !important;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45) !important;
+}
+[data-theme="dark"] .fc-cat-tile-add {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #a5b4fc !important;
+}
+[data-theme="dark"] .fc-cat-tile-add:hover {
+    background: #4f46e5 !important;
+    color: #ffffff !important;
+    border-color: #4f46e5 !important;
+}
+[data-theme="dark"] .fc-cat-tile-icon {
+    /* color-mix preserva semantica del color de la categoria, pero ahora
+     * mezclado con surface-subtle oscuro en lugar de blanco */
+    background: color-mix(in srgb, var(--cat-color) 22%, #171a20) !important;
+    border-color: color-mix(in srgb, var(--cat-color) 40%, #171a20) !important;
+}
+[data-theme="dark"] .fc-cat-tile-name {
+    color: #ffffff !important;
+}
+[data-theme="dark"] .fc-cat-tile-count {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+[data-theme="dark"] .fc-cat-tile-total {
+    color: #ffffff !important;
+}
+[data-theme="dark"] .fc-cat-tile-pend {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+[data-theme="dark"] .fc-cat-tile-paid {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+}
+[data-theme="dark"] .fc-cat-tile-empty {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
