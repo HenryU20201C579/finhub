@@ -1154,6 +1154,18 @@ html[data-theme="dark"] .gd-pedido-results {
     border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
+/* Wrappers principales del split (faltaba en el set anterior - generaba
+ * banda blanca gigante detras de toda la pagina) */
+html[data-theme="dark"] .gd-left,
+html[data-theme="dark"] .gd-right,
+html[data-theme="dark"] .gd-split {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .gd-detail {
+    background: #171a20 !important;
+}
+
 /* Header banner (titulo + subtitulo arriba) */
 html[data-theme="dark"] .gd-header,
 html[data-theme="dark"] .gd-banner {
