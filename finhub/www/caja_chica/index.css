@@ -1324,3 +1324,51 @@ html[data-theme="dark"] .caja-card h4,
 html[data-theme="dark"] .caja-card .caja-title {
     color: #ffffff !important;
 }
+
+/* Inputs combinados (Metodo de Pago / Categoria con boton +) - tenian bg blanco */
+html[data-theme="dark"] .input-group-modern {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .input-group-modern input,
+html[data-theme="dark"] .input-group-modern select {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .input-group-text {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .btn-quick-add {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="dark"] .btn-quick-add:hover {
+    background: rgba(165, 180, 252, 0.18) !important;
+}
+
+/* Botones de accion prominentes que quedaban blancos */
+html[data-theme="dark"] .btn.btn-action-prominent {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Seccion stats por categoria interna (gris claro residual) */
+html[data-theme="dark"] .category-stats-section {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .category-stat-percent {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+}
+
+/* Icono lila claro hardcoded (bg-primary-soft rounded-circle) */
+html[data-theme="dark"] .bg-primary-soft.rounded-circle,
+html[data-theme="dark"] .bg-primary-soft.p-2.rounded-circle {
+    background: rgba(99, 102, 241, 0.22) !important;
+    color: #a5b4fc !important;
+}
