@@ -36,6 +36,7 @@
     let categorias = [];
     let metodosPago = [];
     let categoriasAdjuntos = [];
+    let cajasAbiertas = [];
     let currentGasto = null;
     let currentAttachments = [];
     let pendingAttachment = null;
@@ -88,6 +89,10 @@
         if (CAN_EDIT) {
             document.getElementById("gdForm").addEventListener("submit", handleFormSubmit);
             document.getElementById("gdFilePicker").addEventListener("change", handleFileInput);
+            const cajaSel = document.getElementById("gdInputCajaChica");
+            if (cajaSel) cajaSel.addEventListener("change", updateCajaChicaInfo);
+            const montoInput = document.getElementById("gdInputMonto");
+            if (montoInput) montoInput.addEventListener("input", updateCajaChicaInfo);
         }
 
         document.addEventListener("keydown", (e) => {
@@ -109,15 +114,106 @@
                 categorias = (data.categorias || []).map((c) => c.name);
                 metodosPago = data.metodos_pago || [];
                 categoriasAdjuntos = data.categorias_adjuntos || [];
+                cajasAbiertas = data.cajas_abiertas || [];
 
                 fillSelect("gdInputCategoria", categorias, "Seleccione categoria...");
                 fillSelect("gdFilterCategoria", categorias, "Todas las categorias", true);
                 fillSelect("gdInputMetodo", metodosPago, "Seleccione metodo...");
                 fillSelect("gdAttachCatSelect", categoriasAdjuntos, "Seleccione...");
+                fillCajaChicaSelect();
 
                 renderStats(data.stats || {});
             }
         });
+    }
+
+    function fillCajaChicaSelect() {
+        const sel = document.getElementById("gdInputCajaChica");
+        if (!sel) return;
+        const prev = sel.value;
+        sel.innerHTML = '<option value="">Sin vincular a caja chica</option>';
+        (cajasAbiertas || []).forEach((c) => {
+            const opt = document.createElement("option");
+            opt.value = c.name;
+            opt.dataset.saldo = c.saldo_restante;
+            opt.dataset.responsable = c.responsable || "";
+            const saldo = (c.saldo_restante || 0).toFixed(2);
+            opt.textContent = `${c.name} · ${c.responsable || "Sin responsable"} · S/ ${saldo}`;
+            sel.appendChild(opt);
+        });
+        if (prev) sel.value = prev;
+        updateCajaChicaInfo();
+    }
+
+    function applyCajaChicaForGasto(gasto) {
+        const sel = document.getElementById("gdInputCajaChica");
+        const info = document.getElementById("gdCajaChicaInfo");
+        if (!sel || !info) return;
+
+        if (gasto && gasto.caja_chica) {
+            // Edicion de gasto YA vinculado: caja read-only, no editable
+            // (la cascada no se puede cambiar desde aqui).
+            const caja = cajasAbiertas.find((c) => c.name === gasto.caja_chica);
+            if (caja) {
+                setSelectValue("gdInputCajaChica", gasto.caja_chica);
+            } else {
+                // La caja vinculada puede estar Cerrada -> no esta en cajasAbiertas.
+                // Crear opcion temporal para mostrarla seleccionada.
+                let opt = sel.querySelector(`option[value="${CSS.escape(gasto.caja_chica)}"]`);
+                if (!opt) {
+                    opt = document.createElement("option");
+                    opt.value = gasto.caja_chica;
+                    opt.textContent = `${gasto.caja_chica} (Cerrada)`;
+                    sel.appendChild(opt);
+                }
+                sel.value = gasto.caja_chica;
+            }
+            sel.disabled = true;
+            info.classList.remove("warn", "ok");
+            info.textContent = `Vinculado a ${gasto.caja_chica}. Para desvincular o cambiar de caja, elimine el gasto y cree uno nuevo.`;
+            return;
+        }
+
+        // Creacion o edicion de gasto SIN caja: si el gasto existe, no permitir vincular
+        // (porque la cascada de Pago Finanzas P requiere crear desde cero).
+        if (gasto && !gasto.caja_chica && gasto.name) {
+            sel.value = "";
+            sel.disabled = true;
+            info.classList.remove("warn", "ok");
+            info.textContent = "No se puede vincular caja a un gasto existente. Cree uno nuevo desde la caja.";
+            return;
+        }
+
+        // Creacion limpia: dropdown habilitado
+        sel.disabled = false;
+        sel.value = "";
+        updateCajaChicaInfo();
+    }
+
+    function updateCajaChicaInfo() {
+        const sel = document.getElementById("gdInputCajaChica");
+        const info = document.getElementById("gdCajaChicaInfo");
+        if (!sel || !info) return;
+        const cajaName = sel.value;
+        info.classList.remove("warn", "ok");
+        if (!cajaName) {
+            info.textContent = "El gasto no se descontara de ninguna caja chica.";
+            return;
+        }
+        const caja = cajasAbiertas.find((c) => c.name === cajaName);
+        if (!caja) {
+            info.textContent = "";
+            return;
+        }
+        const monto = parseFloat(document.getElementById("gdInputMonto").value || 0) || 0;
+        const saldo = caja.saldo_restante || 0;
+        if (monto > saldo) {
+            info.classList.add("warn");
+            info.textContent = `Saldo disponible: S/ ${saldo.toFixed(2)}. El monto S/ ${monto.toFixed(2)} excede el saldo.`;
+        } else {
+            info.classList.add("ok");
+            info.textContent = `Saldo disponible: S/ ${saldo.toFixed(2)}. Quedaria S/ ${(saldo - monto).toFixed(2)} tras este gasto.`;
+        }
     }
 
     function loadList() {
@@ -237,6 +333,7 @@
         setSelectValue("gdInputMetodo", gasto.metodo_pago);
         setSelectValue("gdInputEstado", gasto.estado || "Pendiente");
         document.getElementById("gdInputDescripcion").value = gasto.descripcion || "";
+        applyCajaChicaForGasto(gasto);
 
         setPedidosFromList(gasto.pedidos || []);
 
@@ -265,6 +362,7 @@
         setSelectValue("gdInputMetodo", "");
         setSelectValue("gdInputEstado", "Pendiente");
         document.getElementById("gdInputDescripcion").value = "";
+        applyCajaChicaForGasto(null);
 
         clearAllPedidos();
 
@@ -290,6 +388,9 @@
             return;
         }
 
+        const cajaChicaSel = document.getElementById("gdInputCajaChica");
+        const cajaChicaValue = cajaChicaSel && !cajaChicaSel.disabled ? (cajaChicaSel.value || null) : null;
+
         const payload = {
             name: document.getElementById("gdInputName").value || null,
             fecha: document.getElementById("gdInputFecha").value,
@@ -298,6 +399,7 @@
             metodo_pago: document.getElementById("gdInputMetodo").value,
             estado: document.getElementById("gdInputEstado").value,
             descripcion: document.getElementById("gdInputDescripcion").value,
+            caja_chica: cajaChicaValue,
             pedidos: pedidosSeleccionados.map((p) => ({ pedido_tipo: p.tipo, pedido: p.name })),
             adjuntos: currentAttachments
         };
@@ -311,6 +413,21 @@
             return;
         }
 
+        // Si se vincula caja, metodo_pago es requerido (create_payment lo necesita)
+        if (cajaChicaValue && !payload.metodo_pago) {
+            frappe.msgprint("Si vincula a caja chica, el metodo de pago es obligatorio");
+            return;
+        }
+
+        // Validar saldo antes de enviar
+        if (cajaChicaValue) {
+            const caja = cajasAbiertas.find((c) => c.name === cajaChicaValue);
+            if (caja && parseFloat(payload.monto) > (caja.saldo_restante || 0)) {
+                frappe.msgprint(`Saldo insuficiente en ${caja.name}. Disponible: S/ ${(caja.saldo_restante || 0).toFixed(2)}`);
+                return;
+            }
+        }
+
         frappe.call({
             method: API.save,
             args: { data: JSON.stringify(payload) },
@@ -318,6 +435,8 @@
                 if (r.message?.status === "success") {
                     frappe.show_alert({ message: "Gasto guardado", indicator: "green" });
                     loadList();
+                    // Refresca el listado de cajas para reflejar nuevo saldo
+                    if (cajaChicaValue) loadInitialData();
                     if (r.message.name) {
                         frappe.call({
                             method: API.get,

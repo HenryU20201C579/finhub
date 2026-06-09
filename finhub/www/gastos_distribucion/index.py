@@ -110,11 +110,27 @@ def get_initial_data():
 
 	metodos_pago = frappe.get_all("Metodo Pago", fields=["name"], order_by="name asc")
 	cat_adjuntos = frappe.get_all("Categoria Adjuntos Finanzas", fields=["name"], order_by="name asc")
+	cajas_abiertas = frappe.get_all(
+		"Caja Chica",
+		filters={"estado": "Abierta"},
+		fields=["name", "responsable", "saldo_restante", "monto_inicial", "fecha"],
+		order_by="fecha desc, creation desc"
+	)
 
 	return {
 		"categorias": categorias,
 		"metodos_pago": [m.name for m in metodos_pago],
 		"categorias_adjuntos": [c.name for c in cat_adjuntos],
+		"cajas_abiertas": [
+			{
+				"name": c.name,
+				"responsable": c.responsable,
+				"saldo_restante": float(c.saldo_restante or 0),
+				"monto_inicial": float(c.monto_inicial or 0),
+				"fecha": str(c.fecha) if c.fecha else None,
+			}
+			for c in cajas_abiertas
+		],
 		"stats": get_summary_stats(),
 		"can_edit": _has_edit()
 	}
@@ -333,9 +349,27 @@ def save_gasto(data):
 	if isinstance(data, str):
 		data = json.loads(data)
 
+	caja_name = (data.get("caja_chica") or "").strip() or None
+	existing_name = data.get("name") or None
+
+	# Creacion con caja: delegar a caja_chica para que cree Pago Finanzas P espejo
+	# y descuente saldo. Esa funcion es la fuente de verdad para la cascada.
+	if caja_name and not existing_name:
+		from finhub.www.caja_chica.index import create_gasto_distribucion_from_caja
+		return create_gasto_distribucion_from_caja(caja_name, data)
+
+	# Edicion: la caja vinculada no se puede cambiar desde aqui. Para
+	# desvincular o cambiar de caja, eliminar el gasto y crear uno nuevo.
+	if existing_name:
+		existing_caja = frappe.db.get_value("Gastos de Distribucion", existing_name, "caja_chica")
+		if existing_caja and caja_name and caja_name != existing_caja:
+			return {"status": "error", "message": "No se puede cambiar la caja chica de un gasto existente. Elimine el gasto y cree uno nuevo."}
+		if not existing_caja and caja_name:
+			return {"status": "error", "message": "No se puede vincular caja chica a un gasto existente. Elimine y cree uno nuevo."}
+
 	try:
-		if data.get("name"):
-			doc = frappe.get_doc("Gastos de Distribucion", data["name"])
+		if existing_name:
+			doc = frappe.get_doc("Gastos de Distribucion", existing_name)
 		else:
 			doc = frappe.new_doc("Gastos de Distribucion")
 
