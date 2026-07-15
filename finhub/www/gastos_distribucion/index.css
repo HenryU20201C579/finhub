@@ -1276,6 +1276,39 @@ html[data-theme="dark"] input[type="date"],
 html[data-theme="dark"] input[type="number"],
 html[data-theme="dark"] select { color-scheme: dark; }
 
+/* Fix defensivo: usuarios reportaron que en dark mode los inputs del
+   panel "Nuevo Gasto de Distribucion" (Fecha, Monto, Categoria)
+   quedaban con texto blanco sobre fondo blanco. Los overrides genericos
+   de input[type=date]/number no ganaban contra la regla base
+   .gd-detail-body .form-control { background: #fff } por especificidad
+   en algunos navegadores. Este bloque tiene 3 clases + !important
+   ademas de color-scheme:dark para forzar el picker nativo del date en
+   modo oscuro. */
+html[data-theme="dark"] .gd-detail-body .form-control,
+html[data-theme="dark"] .gd-detail-body .form-select,
+html[data-theme="dark"] .gd-detail-body input,
+html[data-theme="dark"] .gd-detail-body select,
+html[data-theme="dark"] .gd-modal-body .form-control,
+html[data-theme="dark"] .gd-modal-body .form-select,
+html[data-theme="dark"] .gd-modal-body input,
+html[data-theme="dark"] .gd-modal-body select {
+    background-color: #171a20 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+    color-scheme: dark !important;
+}
+html[data-theme="dark"] .gd-detail-body .gd-input-group,
+html[data-theme="dark"] .gd-modal-body .gd-input-group {
+    background-color: #171a20 !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+html[data-theme="dark"] .gd-detail-body .gd-input-group > span,
+html[data-theme="dark"] .gd-modal-body .gd-input-group > span {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
 /* Tablas */
 html[data-theme="dark"] table {
     background: transparent !important;
