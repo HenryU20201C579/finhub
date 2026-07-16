@@ -63,7 +63,10 @@ html {
     flex: 1;
     height: 100%;
     overflow-y: auto;
-    background: white;
+    /* Fondo gris muy claro (antes blanco). Reportado 2026-07-16:
+       con left-pane blanco, los cards blancos (stats, cajas) se
+       fundian con el fondo y se veian como un solo bloque de texto. */
+    background: var(--neutral-50);
     padding: 40px;
     display: flex;
     flex-direction: column;
@@ -72,12 +75,13 @@ html {
 .right-pane {
     width: 0;
     background: white;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100%;
     overflow: hidden;
     position: relative;
-    border-left: 1px solid var(--neutral-100);
+    /* Borde mas visible para separar del left-pane */
+    border-left: 1px solid var(--neutral-200);
 }
 
 .right-pane.active {
@@ -119,8 +123,12 @@ html {
 
 .stat-card-modern {
     padding: 24px;
+    background: white;
     border-radius: var(--radius-xl);
-    border: 1px solid var(--neutral-100);
+    /* Borde y sombra mas visibles: en left-pane blanco los cards
+       blancos con neutral-100 pasaban desapercibidos. */
+    border: 1px solid var(--neutral-200);
+    box-shadow: var(--shadow-sm);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -130,6 +138,7 @@ html {
 .stat-card-modern:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+    border-color: var(--neutral-300);
 }
 
 .stat-icon {
@@ -271,7 +280,8 @@ html {
 
 .caja-card {
     background: white;
-    border: 1px solid var(--neutral-100);
+    /* Borde mas visible (antes neutral-100 se fundia con el fondo) */
+    border: 1px solid var(--neutral-200);
     border-radius: var(--radius-xl);
     padding: 24px;
     cursor: pointer;
